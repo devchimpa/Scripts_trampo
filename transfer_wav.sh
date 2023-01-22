@@ -110,7 +110,7 @@ for gravacoes in */*.WAV
 		
 			DESTINO_INICIAL=""$DESTINO_ENVIO"URA"$ORIGEM_GRAVACAO""
 
-			echo "Já existe."	
+			#echo "Já existe."	
 	fi
 
 		if [ ! -d "$DESTINO_INICIAL"/"$DATA_DESTINO" ] 
