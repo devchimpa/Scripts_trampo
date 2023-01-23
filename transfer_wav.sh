@@ -7,7 +7,7 @@
 #by  Pablo Pinheiro                                                             #
 #                                                                               #
 #################################################################################
-# PARA UTILZAR O SCRIPT É PRECISO MUDAR AS VARIÁVEIS ABAIXO:
+# PARA UTILIZAR O SCRIPT É PRECISO MUDAR AS VARIÁVEIS ABAIXO:
 # CAMINHO_ORIGEM E DESTINO_ENVIO
 # 
 # O SCRIPT VAI BUSCAR AS GRAVACOES NO CAMINHO DE ORIGEM.
