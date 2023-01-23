@@ -23,38 +23,7 @@ DESTINO_ENVIO="/home/backups/gravacoes/"
 
 
 ################################################################################
-#for a in */*.WAV
-#  do
-#        TYPE=`echo $a | cut -d "/" -f 2 | cut -d "." -f 2`
-#        UNIQID=`echo $a | cut -d "/" -f 2 | cut -d "." -f 1`
-#        SIGN=`echo $UNIQID | cut -c 3-12`
-#        FILE_NAME="$a"
-#        EPOCH="$SIGN"
-#        WAY=`find ../ -iname $UNIQID.mp3`
-#        echo $FILE_NAME
-#        echo
-        #echo $SIGN
-#        sleep 3
-#        echo
-        #echo $TYPE
-#        sleep 3
-#        echo
-#        date +"%Y-%m-%d" -d @"$EPOCH"
-#        FOLDER=`date +"%Y-%m-%d" -d @"$EPOCH"`
-        #echo "$FILE_NAME - $FOLDER - $WAY" >> arq_folders.log
-#        echo "$FOLDER"
-#        sleep 3
-#        date -d @"$EPOCH" "$@"
-#        echo
-#        mkdir -p /dsk_inss/ura10/$FOLDER  2> /dev/null ||
-#                {
-#                        echo $FOLDER
-#                }
-#        cp -v $FILE_NAME /dsk_inss/ura10/$FOLDER
-#echo  "$FILE_NAME"
-#done
-#
-#
+
 
 ##############################################################################
 # Modificado por: DevChimpa						     #
