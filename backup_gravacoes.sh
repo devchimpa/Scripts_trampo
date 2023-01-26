@@ -11,18 +11,19 @@ DESTINO_ENVIO="/home/backups/gravacoes/"
 
 
 ##############################################################################
-# criado por: DevChimpa                                                      #
-# Data: 24/01/2023                                                           #
-# Contato: chimpadeveloper@gmail.com                                         #
-#         https://github.com/devchimpa/                                      #
-#                                                                            #
+# criado por: DevChimpa                                            #
+# Data: 24/01/2023                                           #
+# Contato: chimpadeveloper@gmail.com                         #
+#         https://github.com/devchimpa/                              #
+#                                                            #
 ##############################################################################
 #
 # Caminho = Disc -> Ura ->  Datas -> Gravacoes
 #
 
 cd "$CAMINHO_ORIGEM"
-DATA_ATUAL="$( date +%Y-%m-%d )"
+DATA_UNIX="$( date +%s )"
+
 
 separa_gravacoes (){
         GRAVACAO_RECEBIDA=$1
@@ -50,6 +51,7 @@ busca_arquivo(){
                         CAMINHO_ARQUIVO="$( pwd )"
                         GRAVACAO=$(echo $i )
                         echo "$CAMINHO_ARQUIVO""/$GRAVACAO"
+                        echo "$TEMPORIZADOR"
                         separa_gravacoes $GRAVACAO
                         sleep 1
 
@@ -59,4 +61,21 @@ busca_arquivo(){
         cd ..
 done
 }
-busca_arquivo
+
+busca_arquivo_novo(){
+
+        for disc in */*/*
+  do
+        echo $disc
+        echo "##################"
+        GRAVACAO="$(echo "$disc" | cut -d "/" -f "3" )"
+        echo "$GRAVACAO"
+done
+
+        }
+
+
+
+
+#busca_arquivo
+busca_arquivo_novo
