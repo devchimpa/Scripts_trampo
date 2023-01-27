@@ -1,8 +1,8 @@
 #!/bin/bash
-
+##############################################################################
 #       DESCRIÇÃO:
 #       LAÇO FOR PARA PEGAR AS GRAVACOES DENTRO DE 3 DIRETÓRIOS CONSECUTIVOS.
-#
+#       E COMPARAR SE TEM MAIS OU MENOS QUE 90 DIAS.
 
 #############################################################################
 
@@ -11,18 +11,18 @@ DESTINO_ENVIO="/home/backups/gravacoes/"
 
 
 ##############################################################################
-# criado por: DevChimpa                                            #
-# Data: 24/01/2023                                           #
-# Contato: chimpadeveloper@gmail.com                         #
-#         https://github.com/devchimpa/                              #
-#                                                            #
+# criado por: DevChimpa                                                      #
+# Data: 24/01/2023                                                           #
+# Contato: chimpadeveloper@gmail.com                                         #
+#         https://github.com/devchimpa/                                      #
+#                                                                            #
 ##############################################################################
 #
 # Caminho = Disc -> Ura ->  Datas -> Gravacoes
 #
 
 cd "$CAMINHO_ORIGEM"
-DATA_UNIX="$( date +%s )"
+NOVENTA_DIAS_ATRAS="$( date -d "-90 days" +%s )"
 
 
 separa_gravacoes (){
@@ -37,45 +37,31 @@ separa_gravacoes (){
 
 busca_arquivo(){
 
-        for disc in *
-  do
-        echo $disc
-        echo "##################"
-        cd $disc
-        for ura in *
-        do
-                echo $ura
-                cd $ura
-                for i in *
-                do
-                        CAMINHO_ARQUIVO="$( pwd )"
-                        GRAVACAO=$(echo $i )
-                        echo "$CAMINHO_ARQUIVO""/$GRAVACAO"
-                        echo "$TEMPORIZADOR"
-                        separa_gravacoes $GRAVACAO
-                        sleep 1
-
-                done
-        cd ..
-        done
-        cd ..
-done
-}
-
-busca_arquivo_novo(){
-
         for disc in */*/*
   do
         echo $disc
-        echo "##################"
+        echo "########################################"
         GRAVACAO="$(echo "$disc" | cut -d "/" -f "3" )"
         echo "$GRAVACAO"
+        separa_gravacoes "$GRAVACAO"
+        echo "$DATA_ORIGINAL"
+#       echo "$TEMPORIZADOR"
+        #echo "$NOVENTA_DIAS_ATRAS"
+        if [ "$TEMPORIZADOR" -lt "$NOVENTA_DIAS_ATRAS" ] || [ "$TEMPORIZADOR" -eq "$NOVENTA_DIAS_ATRAS" ]
+        then
+
+                echo "é maior que noventa dias."
+        else
+
+
+                echo "é menor que noventa dias."
+        fi
+
 done
 
-        }
+}
 
 
 
 
-#busca_arquivo
-busca_arquivo_novo
+busca_arquivo
