@@ -1,8 +1,8 @@
 #!/bin/bash
-##############################################################################
+
 #       DESCRIÇÃO:
 #       LAÇO FOR PARA PEGAR AS GRAVACOES DENTRO DE 3 DIRETÓRIOS CONSECUTIVOS.
-#       E COMPARAR SE TEM MAIS OU MENOS QUE 90 DIAS.
+#
 
 #############################################################################
 
@@ -33,6 +33,23 @@ separa_gravacoes (){
         DATA_ORIGINAL="$( date +%Y-%m-%d -d @"$TEMPORIZADOR" )"
 }
 
+testa_tempo(){
+
+        if [ "$TEMPORIZADOR" -lt "$NOVENTA_DIAS_ATRAS" ]  || [ "$TEMPORIZADOR" -eq "$NOVENTA_DIAS_ATRAS" ]
+        then
+
+                echo "é maior que noventa dias."
+        else
+
+
+                echo "é menor que noventa dias."
+        fi
+
+}
+
+
+
+
 #simulação: gravacoes/desc_ura00/2022-10-20
 
 busca_arquivo(){
@@ -47,20 +64,10 @@ busca_arquivo(){
         echo "$DATA_ORIGINAL"
 #       echo "$TEMPORIZADOR"
         #echo "$NOVENTA_DIAS_ATRAS"
-        if [ "$TEMPORIZADOR" -lt "$NOVENTA_DIAS_ATRAS" ] || [ "$TEMPORIZADOR" -eq "$NOVENTA_DIAS_ATRAS" ]
-        then
-
-                echo "é maior que noventa dias."
-        else
-
-
-                echo "é menor que noventa dias."
-        fi
-
+        testa_tempo
 done
 
 }
-
 
 
 
