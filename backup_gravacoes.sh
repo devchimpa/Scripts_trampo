@@ -39,6 +39,10 @@ testa_tempo(){
         then
 
                 echo "é maior que noventa dias."
+                mkdir -p "$CAMINHO_ORIGEM"gravacoes_antigas
+                #sleep 2
+                cp -rpuv "$arquivo" "$CAMINHO_ORIGEM"gravacoes_antigas
+
         else
 
 
@@ -48,18 +52,16 @@ testa_tempo(){
 }
 
 
-
-
 #simulação: gravacoes/desc_ura00/2022-10-20
 
 busca_arquivo(){
 
-        for disc in */*/*
+        for arquivo in */*/*
   do
-        echo $disc
+        echo $arquivo
         echo "########################################"
-        GRAVACAO="$(echo "$disc" | cut -d "/" -f "3" )"
-        echo "$GRAVACAO"
+        GRAVACAO="$(echo "$arquivo" | cut -d "/" -f "3" )"
+        #echo "$GRAVACAO"
         separa_gravacoes "$GRAVACAO"
         echo "$DATA_ORIGINAL"
 #       echo "$TEMPORIZADOR"
