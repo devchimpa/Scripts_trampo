@@ -56,7 +56,7 @@
 DIRETORIO_ORIGEM=/home/chimpa/Documents/gravacoes/
 #É o diretório para onde ele irá enviar as gravações localizadas.
 DIRETORIO_DESTINO=/home/chimpa/Documents/gravacoes_antigas/
-
+# Sempre termine a declaração do diretório inicial com "/"
 
 NOVENTA_DIAS_ATRAS="$( date -d "-90 days" +%s )"
 
