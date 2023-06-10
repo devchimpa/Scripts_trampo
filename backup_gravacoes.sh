@@ -51,15 +51,23 @@
 
 ###############################################################################
 
+#######################--VARIÁVEIS IMPORTANTES-----#############################
 
 #É o diretório de onde ele irá iniciar a busca por gravações.
 DIRETORIO_ORIGEM=/home/chimpa/Documents/gravacoes/
+
 #É o diretório para onde ele irá enviar as gravações localizadas.
 DIRETORIO_DESTINO=/home/chimpa/Documents/gravacoes_antigas/
-# Sempre termine a declaração do diretório inicial com "/"
 
+# Definição para orientar a movimentação de gravações com tempo maior que 90 dias.
 NOVENTA_DIAS_ATRAS="$( date -d "-90 days" +%s )"
 
+# Espaço máximo em disco máximo que deve estar ocupado
+# O valor ajustado aqui servirá como padrão para iniciar o programa.
+# Se o espaço ocupado for mairo do que TAMANHO_ESPERADO o programa inicia
+TAMANHO_ESPERADO=40
+
+################################################################################
 
 # esta é uma maneira de varrer o diretório de maneira recursiva
 # recursiva porque ele sempre vai ser chamado enquanto estiver vendo pastas.
@@ -74,7 +82,7 @@ varrer_diretorio() {
             # Se for um diretório, chama a função recursivamente
             varrer_diretorio "$ARQUIVO"
         elif [ -f "$ARQUIVO" ]; then
-        	
+		testa_disco        
             # Se for um arquivo, faça:
             #echo "$ARQUIVO"
           GRAVACAO=$( echo "$ARQUIVO" | tr "/" " " | rev | awk {'print $1'} | rev )
@@ -84,6 +92,8 @@ varrer_diretorio() {
         fi
     done
 }
+
+
 
 
 cria_diretorio_e_move(){
@@ -141,13 +151,16 @@ testa_tres_meses "$TIMESTAMP"
 }
 
 
+
+# a função testa disco irá dar o start no programa, caso o disco esteja cheio e
+#  precise ser feito o remanejamento.
 verifica_disco(){
 
 DISCO_UM=$(df -h | grep -v /dev/loop | grep -i chimpa | awk {'print $5'} | tr -d "%" )
 
 echo "O Disco 01 está com: "$DISCO_UM"% De espaço utilizado."
 
-if [ $DISCO_UM -gt 40 ]
+if [ $DISCO_UM -gt $TAMANHO_ESPERADO ]
  then
 	echo "Disco cheio..."
 	sleep 1
@@ -163,6 +176,51 @@ else
 fi
 
 }
+
+# a função testa disco é muito parecida com a função verifica_disco, porém
+# ela serve para marcar se as gravações já podem parar de serem remanejadas.
+
+testa_disco(){
+
+DISCO_UM=$(df -h | grep -v /dev/loop | grep -i chimpa | awk {'print $5'} | tr -d "%" )
+
+echo "O Disco 01 está com: "$DISCO_UM"% De espaço utilizado."
+
+if [ $DISCO_UM -gt $TAMANHO_ESPERADO ]
+ then
+	echo "Disco cheio..."
+	sleep 1
+# Se o disco estiver cheio, ele irá imprimir a mensagem prosseguir.	
+	
+else
+# se o disco já estiver dentro do padrão esperado, ele finaliza.
+	echo "Disco dentro do padrão esperado."
+	sleep 1 
+	echo "Encerrando o programa..."
+	exit 0
+fi
+
+}
+
+verifica_processo(){
+
+NUMERO_DE_PROCESSOS=$( ps aux | grep $0 | grep -v "grep" | wc -l )
+
+if [ "$NUMERO_DE_PROCESSOS" -gt 2 ] 
+then
+	echo " Já existe processo rodando"
+	#echo "$NUMERO_DE_PROCESSOS"
+	exit 0
+fi
+
+}
+
+verifica_processo
+
+#O verifica_processo serve para que o script não duas vezes
+#Enquanto um processo estiver rodando, este script não irá rodar
+#Junto com o verifica_disco, há a garantia de que ele só irá executar
+#quando o primeiro processo acabar e só irá rodar se o espaço em disco estiver usado.
 
 verifica_disco
 
