@@ -1,5 +1,15 @@
 #!/bin/bash
 #
+##############################################################################
+# Criado por: Rodrigo Pinheiro                                               #
+# Comunix Tecnologia                                                         #
+# Data: 24/01/2023                                                           #
+# Contato:                                                                   #
+#         https://www.linkedin.com/in/rodrigo-pinheiro-214663206/            #
+#         https://github.com/devchimpa/                                      #
+#                                                                            #
+##############################################################################
+#
 ############################################################################
 #                                                                          #
 #       DESCRIÇÃO:                                                         #
@@ -13,126 +23,146 @@
 #                                                                          #
 ############################################################################
 
-#para funcionar o caminho deve ser terminado em '/'
-CAMINHO_ORIGEM="/home/backups/gravacoes/"
-#DESTINO_ENVIO="/home/backups/gravacoes/"
+################################################################################
 
-#DISCO_PRINCIPAL="$( df -h | grep -v home2 | grep -v home3 | grep home | awk '{print $5}' | tr % ' ')"
-DISCO_UM="$( df -h | grep Chimpa | awk '{print $5}' | tr % ' ' )"
-DISCO_DOIS="$( df -h | grep nvme0n1p2 | awk '{print $5}' | tr % ' ' )"
+# BOAS PRÁTICAS:
 
-##############################################################################
-# Criado por: Rodrigo Pinheiro                                               #
-# Comunix Tecnologia                                                         #
-# Data: 24/01/2023                                                           #
-# Contato:                                                                   #
-#         https://www.linkedin.com/in/rodrigo-pinheiro-214663206/            #
-#         https://github.com/devchimpa/                                      #
-#                                                                            #
-##############################################################################
+# VARIÁVEIS DEVEM SER DECLARADAS COM LETRAS MAIÚSCULAS
 
+# VARIÁVEIS DEVEM TER NOMES CLAROS COMO POR EXEMPLO: "PID_DO_PROCESSO" 
 
-# CAMINHO EXEMPLO
-# Disc_00 -> Ura00 ->  2022-01-01  -> WAV
+# FUNÇÕES DEVEM SER DECLARADAS COM LETRAS minúsculas
 
-# ir para o caminho inicial
+# FUNÇÕES DEVEM TER NOMES CLAROS COMO POR EXEMPLO: "localiza_arquivo" 
 
-echo "$DISCO_UM"
-echo "$DISCO_DOIS"
+# COMENTÁRIOS SÃO SEMPRE BEM VINDOS.
 
-# entre a /home2 e /home3, o disco que tiver com espaço menor será eleito a receber as gravações
-# quando o dico eleito tiver cheio, o outro disco será usado até ocupar inteiramente, ou finalizar a cópia.
-# se os dois discos estiverem cheios  o disco principal em 90% o programa deverá de alguma maneira emitir um alerta.
+# Lembre-se, manter uma boa prática ajuda na manutenção e leitura do código.
+
+################################################################################                                                                                                                                                             #
+
+# CASO MEXA NESSE SCRIPT OU TENHA ALGUMA MELHORIA, SEGUIR O MODELO DO CAMPO ABAIXO:
+
+# NOME:
+
+# DATA DE MODIFICAÇÃO:
+
+# O QUE FOI MODIFICADO:
+
+###############################################################################
 
 
-cd "$CAMINHO_ORIGEM"
+#É o diretório de onde ele irá iniciar a busca por gravações.
+DIRETORIO_ORIGEM=/home/chimpa/Documents/gravacoes/
+#É o diretório para onde ele irá enviar as gravações localizadas.
+DIRETORIO_DESTINO=/home/chimpa/Documents/gravacoes_antigas/
+
 
 NOVENTA_DIAS_ATRAS="$( date -d "-90 days" +%s )"
 
-separa_itens(){
 
-        #separa campos das gravacoes
+# esta é uma maneira de varrer o diretório de maneira recursiva
+# recursiva porque ele sempre vai ser chamado enquanto estiver vendo pastas.
+# O objetivo dessa varredura é localizar apenas as gravações. 
+varrer_diretorio() {
+    DIRETORIO_A_VARRER=$1
 
-        GRAVACAO_RECEBIDA=$1
-        UNIQUEID="$(echo "$GRAVACAO_RECEBIDA" | cut -d "." -f 1)"
-        TEMPORIZADOR="$( echo "$UNIQUEID" | cut -c 3-12)"
-        ORIGEM_URA="$( echo "$UNIQUEID" | cut -c 1-2)"
-        DATA_ORIGINAL="$( date +%Y-%m-%d -d @"$TEMPORIZADOR" )"
+    # Loop para percorrer os arquivos e diretórios no diretório atual
+    for ARQUIVO in "$DIRETORIO_A_VARRER"/*; do
+        if [ -d "$ARQUIVO" ]; then
+        	
+            # Se for um diretório, chama a função recursivamente
+            varrer_diretorio "$ARQUIVO"
+        elif [ -f "$ARQUIVO" ]; then
+        	
+            # Se for um arquivo, faça:
+            #echo "$ARQUIVO"
+          GRAVACAO=$( echo "$ARQUIVO" | tr "/" " " | rev | awk {'print $1'} | rev )
+          descobre_data "$GRAVACAO"
+          
+          
+        fi
+    done
 }
 
-testa_tempo(){
 
-        # testa se o id da gravação é menor ou igual 90 dias
+cria_diretorio_e_move(){
 
-        if [ "$TEMPORIZADOR" -lt "$NOVENTA_DIAS_ATRAS" ]  || [ "$TEMPORIZADOR" -eq "$NOVENTA_DIAS_ATRAS" ]
+
+mkdir -p "$DIRETORIO_DESTINO""$DATA_DE_ORIGEM"
+
+sleep 1
+
+cp -rpuv "$ARQUIVO" "$DIRETORIO_DESTINO""$DATA_DE_ORIGEM"
+#mv -v "$GRAVACAO" "$DIRETORIO_DESTINO""$DATA_DE_ORIGEM"
+
+}
+
+
+
+testa_tres_meses(){
+
+        # Este trecho vai receber da função 'descobre_data', o id da gravação e testar se tem
+        # mais ou menos de 3 meses.
+
+        if [ "$1" -lt "$NOVENTA_DIAS_ATRAS" ]  || [ "$1" -eq "$NOVENTA_DIAS_ATRAS" ]
         then
 
-                echo "é maior que noventa dias."
-                mkdir -p "$DESTINO_ENVIO"gravacoes_antigas
-                #sleep 2
-                cp -rpuv "$arquivo" "$DESTINO_ENVIO"gravacoes_antigas
+                echo "A gravação:" "$GRAVACAO" "é de:" "$DATA_DE_ORIGEM" "então é maior que noventa dias."
+           	#Aqui estamos chamando a função para movimentar a gravação para o local correto.
+           	cria_diretorio_e_move
+                
+                #echo "$GRAVACAO" "$DIRETORIO_DESTINO""$DATA_DE_ORIGEM"
+               
 
         else
-                echo "é menor que noventa dias."
+                echo "A gravação:" "$GRAVACAO" "é de" "$DATA_DE_ORIGEM" "então é menor que noventa dias."
+       
         fi
 
 }
 
 
-busca_arquivo(){
 
-        #varre os diretórios em busca das gravações e guarda na variável $arquivo
+descobre_data(){
 
-        for arquivo in */*/*
-  do
-        echo $arquivo
-        echo "########################################"
-        GRAVACAO="$(echo "$arquivo" | cut -d "/" -f "3" )"
 
-        #echo "$GRAVACAO"
-        separa_itens "$GRAVACAO"
+TIMESTAMP=$( echo "$1" | cut -c 3-12 )
 
-        echo "$DATA_ORIGINAL"
-        echo "$TEMPORIZADOR"
-        verifica_disco
-        #echo "$NOVENTA_DIAS_ATRAS"
+#echo "$TIMESTAMP"
 
-        # chama a função testa tempo para poder validar o timestamp
-        testa_tempo
+DATA_DE_ORIGEM=$( date -d @"$TIMESTAMP" +%Y-%m-%d )
 
-done
+#date -d @"$TIMESTAMP" +%s
+#echo "$GRAVACAO" "data de criação:" "$DATA_DE_ORIGEM"
 
+testa_tres_meses "$TIMESTAMP"
+	
 }
-
-verifica_principal(){
-
-        if [ "$DISCO_PRINCIPAL" -ge 80 ] then
-                #chama a função para iniciar o programa
-                busca_gravacao
-        else
-               echo " Tudo certo."
-               fi
-               exit
-       }
 
 
 verifica_disco(){
 
-        if [ "$DISCO_DOIS" -lt "$DISCO_UM" ]
-        then
-                DESTINO_ENVIO="/home/backups/gravacoes/home-2/"
-                echo "$DESTINO_ENVIO"
-        else
-                DESTINO_ENVIO="/home/backups/gravacoes/home-3/"
-                echo "$DESTINO_ENVIO"
+DISCO_UM=$(df -h | grep -v /dev/loop | grep -i chimpa | awk {'print $5'} | tr -d "%" )
 
-        fi
+echo "O Disco 01 está com: "$DISCO_UM"% De espaço utilizado."
+
+if [ $DISCO_UM -gt 40 ]
+ then
+	echo "Disco cheio..."
+	sleep 1
+	echo "Iniciando o remanejamento..."
+# Se o disco estiver cheio, ele inicia a varredura.	
+varrer_diretorio $DIRETORIO_ORIGEM
+	
+else
+	echo "Disco dentro do padrão esperado."
+	sleep 1 
+	echo "Encerrando o programa..."
+	exit 0
+fi
 
 }
 
+verifica_disco
 
-################################ Chaves de funções ##################################
-
-
-#busca_arquivo
-#verifica_disco
