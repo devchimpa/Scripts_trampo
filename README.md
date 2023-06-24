@@ -2,7 +2,7 @@
 
 Scripts e programas utilizados no trabalho.
 
-<img width='500' height='333' https://i.pinimg.com/originals/41/82/ab/4182abdc4112f761b5231a78ada81a71.gif />
+<img width='500' height='333' src="https://i.pinimg.com/originals/41/82/ab/4182abdc4112f761b5231a78ada81a71.gif" />
 
 Alguns são apenas estudos, outros são realmente funcionais e servem para acelerar o trabalho diário.
 Este repositório serve para acelerar o meu processo de programar, códigos já criados anteriormente
