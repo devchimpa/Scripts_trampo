@@ -219,7 +219,7 @@ deleta_arquivo(){
 
 virus_scan(){
 
-        clamdscan $ARQUIVO_ENTRADA --fdpass --no-summar 2> /dev/null
+        clamdscan $ARQUIVO_ENTRADA --fdpass --no-summar 2>&1>> /dev/null
         #echo $?
 
 
