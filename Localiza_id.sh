@@ -72,16 +72,6 @@ DIR_TRES=/home3/gravacoes/brb_call
 
 #===================FUNCIONAMENTO DO PROGRAMA========================================#
 
-compara_id(){
-
-
-        if [ "$GRAVA" == "$1" ]
-        then
-                echo "igual!"
-                fi
-
-}
-
 
 #função para verificar onde está a gravação e salvar em uma variável.
 localiza_grava(){
@@ -95,6 +85,25 @@ GRAVA_TRES=$( ls $DIR_TRES/$DIR_DATA 2>> /dev/null | cut -d "_" -f 3 | tr -d aA-
 localiza_grava
 
 
+rodar_script (){
+
+DIRETORIO=$1
+DIRETORIO_DATA=$2
+DIRETORIO_GRAVACAO=$3
+
+        if [ "$EXTENSAO" = mkv ]
+        then
+                echo " A extensão da gravação é $EXTENSAO "
+                echo " Então, rodar o script: /var/www/./sender.sh $DIRETORIO/$DIRETORIO_DATA/ $DIRETORIO_DATA $LOCALIZADA "
+        elif [ "$EXTENSAO" = avi ]
+        then
+                echo " A extensão da gravação é $EXTENSAO "
+                echo " Então, rodar o script: /var/www/./senderonly.sh $DIRETORIO/$DIRETORIO_DATA/ $DIRETORIO_DATA $LOCALIZADA "
+
+        fi
+}
+
+
 
 compara_gravas(){
         if [ ${#GRAVA_UM} -gt 0 ]
@@ -102,28 +111,40 @@ then
 
         echo
         echo "Gravação: $GRAVA_UM encontrada!"
-        ls $DIR_UM/$DIR_DATA | grep $DATA_GRAVA
+        LOCALIZADA=$( ls $DIR_UM/$DIR_DATA | grep $DATA_GRAVA )
+        echo $LOCALIZADA
+        EXTENSAO=$( echo $LOCALIZADA | tr -d 0-9 | tr -d "_." )
+        echo $DIR_UM/$DIR_DATA
         echo
-
+        rodar_script $DIR_UM $DIR_DATA $DATA_GRAVA
 
 elif [ ${#GRAVA_DOIS} -gt 0 ]
 then
 
         echo
         echo "Gravação: $GRAVA_DOIS encontrada! "
-        ls $DIR_DOIS/$DIR_DATA | grep $DATA_GRAVA
+        LOCALIZADA=$( ls $DIR_DOIS/$DIR_DATA | grep $DATA_GRAVA )
+        echo $LOCALIZADA
+        EXTENSAO=$( echo $LOCALIZADA | tr -d 0-9 | tr -d "_." )
+        echo $DIR_DOIS/$DIR_DATA
         echo
+        rodar_script $DIR_DOIS $DIR_DATA $DATA_GRAVA
 
 
 elif [ ${#GRAVA_TRES} -gt 0 ]
 then
         echo
         echo "Gravação: $GRAVA_TRES encontrada!"
-        ls $DIR_TRES/$DIR_DATA | grep $DATA_GRAVA
+        LOCALIZADA=$( ls $DIR_TRES/$DIR_DATA | grep $DATA_GRAVA )
+        echo $LOCALIZADA
+        EXTENSAO=$( echo $LOCALIZADA | tr -d 0-9 | tr -d "_." )
+        echo $DIR_TRES/$DIR_DATA
         echo
+        rodar_script $DIR_TRES $DIR_DATA $DATA_GRAVA
 
 else
         echo " Gravação não localizada"
         fi
 }
+
 compara_gravas
