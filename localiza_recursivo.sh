@@ -1,5 +1,11 @@
 #!/bin/bash
 
+for linha in $(cat /home/chimpa/Documents/Caderno/Shellscript/lista)
+        do
+        sleep 1
+        GRAVACAO=$linha
+done
+
 # Nesta primeira variável estamos passando o arquivo que queremos encontrar
 GRAVACAO=$1
 
@@ -10,7 +16,7 @@ compara(){
   if [ "$GRAVACAO" = "$LOCALIZADO" ]
 then
   echo "$1 ACHOU!"
-  exit 0
+  
 fi
 }
 
