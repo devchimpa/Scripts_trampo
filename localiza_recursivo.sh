@@ -52,7 +52,8 @@
 #diretorio onde o script deve iniciar a busca:
 DIRETORIO_DEFINIDO=/mnt2
 #
-#
+#Lista que será usada pelo script para leitura, os arquivos que queremos localizar
+#devem estar dentro dela
 LISTA_DE_BUSCAS=/home/lista_de_procuradas
 #
 #arquivo onde devem ser registradas gravacoes localizadas:
