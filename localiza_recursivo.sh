@@ -1,4 +1,3 @@
-
 #!/bin/bash
 #
 #
@@ -65,7 +64,16 @@ ARQUIVO_DE_LOG=/home/gravacao_localizada
 
 ############################## INICIO DO SCRIPT #############################################
 
+verifica_procura(){
 
+        arquivo_vazio=$( wc -w $LISTA_DE_BUSCAS | tr -d "a-z" | tr -d "_"  | tr -d "/" )
+
+        if [ $arquivo_vazio -eq 0 ]
+        then
+        echo "Lista Finalizada."
+        exit 0
+fi
+}
 
 # Esta função servirá para comparar se o arquivo que ele achou é o mesmo que estamos procurando.
 
@@ -105,6 +113,9 @@ procura(){
 
   for arquivo in "$DIRETORIO_A_VARRER"/*
 do
+
+  verifica_procura
+
 # Se for um arquivo ele verifica se este é igual o que estamos procurando
   if [ -f "$arquivo" ]
   then
@@ -112,7 +123,6 @@ do
 # caso nao queira visualizar, basta comentar.
  printf "Verificando arquivo: %s\r" "$arquivo"
   compara $arquivo
-
 # se for um diretório, ele entra no diretório e continua a varredura.
 
 elif [ -d "$arquivo" ]
