@@ -1,3 +1,4 @@
+
 #!/bin/bash
 #
 #
@@ -80,7 +81,10 @@ for linha in $(cat $LISTA_DE_BUSCAS)
   if [ "$GRAVACAO" = "$LOCALIZADO" ]
 
   then
+        echo
         echo "$1 achou!"
+        #estes echo vazios servem para criar um espaço entre as gravaçoes localizadas e deixar a visibilidade melhor
+        echo
         echo $1 >> $ARQUIVO_DE_LOG
 
         fi
@@ -104,9 +108,9 @@ do
 # Se for um arquivo ele verifica se este é igual o que estamos procurando
   if [ -f "$arquivo" ]
   then
-# este printf serve para ficar exibindo qual arquivo está sendo varrido.
-# ajuda a verificar se o script está rodando e onde.
-  printf "Verificando arquivo: %s\r" "$arquivo"
+# este printf serve para que seja possivel visualizar a verificação
+# caso nao queira visualizar, basta comentar.
+ printf "Verificando arquivo: %s\r" "$arquivo"
   compara $arquivo
 
 # se for um diretório, ele entra no diretório e continua a varredura.
