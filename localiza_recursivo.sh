@@ -24,7 +24,7 @@
 #
 # O script funciona por meio de um laço for que vai fazendo a comparação para identificar
 # se os arquivos localizados na varredura são os mesmos que solicitamos, caso seja
-# ele irá registrar um log indicando a localização do arquivo.			
+# ele irá registrar um log indicando a localização do arquivo.
 #
 #-----------------------------------------------------------------------------------------
 ################################ Boas práticas ############################################
@@ -33,18 +33,18 @@
 # O script está todo comentado e comentários são sempre bem vindos.
 # Caso acrescente algo, comente, coloque data e assinatura para
 # que todos saibam o que foi alterado, quando e por quem para caso de dúvidas.
-# 
+#
 # Mantenha variáveis GLOBAIS em maiúsculas
 #
 # Mantenha nomes minimamente claros e em português
-# 
-# 
-# 
+#
+#
+#
 #
 ############################################################################################
 #
-#			 CONFIGURAÇÕES DO SCRIPT:
-#		( utilize este campo para configurar o script)
+#                        CONFIGURAÇÕES DO SCRIPT:
+#               ( utilize este campo para configurar o script)
 #
 #########################################################################################
 #
@@ -80,10 +80,10 @@ for linha in $(cat $LISTA_DE_BUSCAS)
   if [ "$GRAVACAO" = "$LOCALIZADO" ]
 
   then
-	echo "$1 achou!"
-       	echo $1 >> $ARQUIVO_DE_LOG
+        echo "$1 achou!"
+        echo $1 >> $ARQUIVO_DE_LOG
 
-	fi
+        fi
 
 done
 }
