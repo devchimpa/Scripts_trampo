@@ -104,7 +104,9 @@ do
 # Se for um arquivo ele verifica se este é igual o que estamos procurando
   if [ -f "$arquivo" ]
   then
-
+# este printf serve para ficar exibindo qual arquivo está sendo varrido.
+# ajuda a verificar se o script está rodando e onde.
+  printf "Verificando arquivo: %s\r" "$arquivo"
   compara $arquivo
 
 # se for um diretório, ele entra no diretório e continua a varredura.
