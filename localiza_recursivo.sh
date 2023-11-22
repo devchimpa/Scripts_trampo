@@ -64,6 +64,10 @@ ARQUIVO_DE_LOG=/home/gravacao_localizada
 
 ############################## INICIO DO SCRIPT #############################################
 
+
+# Esta funcao serve para leitura do arquivo de gravacoes solicitadas
+# caso a lista esteja zerada o script encerra.
+
 verifica_procura(){
 
         arquivo_vazio=$( wc -w $LISTA_DE_BUSCAS | tr -d "a-z" | tr -d "_"  | tr -d "/" )
@@ -74,6 +78,7 @@ verifica_procura(){
         exit 0
 fi
 }
+
 
 # Esta função servirá para comparar se o arquivo que ele achou é o mesmo que estamos procurando.
 
@@ -132,7 +137,7 @@ then
 
 done
 
-  }
+}
 
 
 ######################## Para ativar/desativar o script #########################################
@@ -142,6 +147,7 @@ done
 # no diretório configurado lá em cima.
 
 procura $DIRETORIO_DEFINIDO
-
+echo
+echo " Programa finalizado..."
 
 ##############################################################################################
