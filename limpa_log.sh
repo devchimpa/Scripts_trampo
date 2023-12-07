@@ -57,12 +57,12 @@
 #######################---VARIÁVEIS IMPORTANTES----#############################
 
 # Esta variável guarda o diretório onde será feita a limpeza.
-DIRETORIO_A_LIMPAR="/home/extend/log"
+DIRETORIO_A_LIMPAR="/home/extend/log/"
 
 
 # Esta variável indica que arquivos com mais de um dia serão apagados.
-# Ela deve ser declarada desta maneira: "+1"
-DIAS_MAIOR_QUE="+1"
+# Ela deve ser declarada desta maneira: "-1", assim arquivos com até 24 serão apagados
+DIAS_MAIOR_QUE="-1"
 
 ################################################################################
 
