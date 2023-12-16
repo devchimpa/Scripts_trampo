@@ -1,1 +1,1 @@
-mkdir -p /home/chimpa/nuvem
+mkdir /home/chimpa/nuvem
