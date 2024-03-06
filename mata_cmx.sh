@@ -8,13 +8,13 @@
 #https://github.com/devchimpa/
 #
 #########################################################################
-#                                                                       #
-#       OBJETIVO:                                                       #
-#       Este script deve fazer um stop gracefully no comunix a 00h      #
-#       dos sábados e quando não houver mais chamadas em curso          #
-#       o serviço deve ser encerrado e inicializado novamente.          #
-#                                                                       #
-#                                                                       #
+#
+#       OBJETIVO:
+#       Este script deve fazer um stop gracefully no comunix a 00h
+#       dos sábados e quando não houver mais chamadas em curso
+#       o serviço deve ser encerrado e inicializado novamente.
+#
+#
 ############## Siga o modelo abaixo caso mexa no script: ################
 #
 #
@@ -28,14 +28,15 @@
 #                       VARIAVEIS DE CONFIGURAÇÃO:                       #
 ##########################################################################
 
-# tempo de espera para aguardar as chamadas encerrarem.
-TEMPO_DE_ESPERA=10
-
+# tempo de espera em SEGUNDOS para aguardar as chamadas encerrarem.
+TEMPO_DE_ESPERA=60
+# data para registros de logs
 DATA_DE_INICIO=$(  date +%d-%m-%y_%H:%M )
 
 # Verificador de chamadas em andamento.
+CHAMADAS_ATIVAS=$( comunix -rx "core show calls" | grep "active" | awk {'print $1'} 2>>/dev/null  )
 
-CHAMADAS_ATIVAS=$( comunix -rx "core show calls" | grep "active" | awk {'print $1'} )
+echo $CHAMADAS_ATIVAS
 
 LOG_DE_ERRO="/home/extend/erro-$0"
 
@@ -44,23 +45,25 @@ LOG_DE_ERRO="/home/extend/erro-$0"
 ##########################################################################
 
 
-verifica_andamento(){
+stop_gracefully(){
+#Este trecho irá iniciar a parada do Comunix
 
-        # Esta função irá verificar se as chamadas ainda estão em andamento.
+        echo "Stop Grecefully!"
+        comunix -rx " core stop gracefully "
+
+        # Este trecho irá verificar se as chamadas ainda estão em andamento.
         # Este valor deve ser zero.
-        while [ "$CHAMADAS_ATIVAS" -ne 1 ]
+        while [ "$CHAMADAS_ATIVAS" -ne 0 ]
 
         do
                 # aguarda um período para encerrar o Comunix.
                 sleep "$TEMPO_DE_ESPERA"
-
+                echo "Aguardando encerramento..."
                 CHAMADAS_ATIVAS=$( comunix -rx "core show calls" | grep "active" | awk {'print $1'} )
-
-                # variavel de teste
-                CHAMADAS_ATIVAS=1
-
-done
+        done
 }
+
+
 
 
 encerra_comunix(){
@@ -69,9 +72,10 @@ encerra_comunix(){
     if [ "$CHAMADAS_ATIVAS" -eq 0 ]
 then
 
+        pkill comunix
     echo "Matou Comunix"
         sleep 3
-    PROCESSOS_COMUNIX=$( pgrep comunix )
+    #PROCESSOS_COMUNIX=$( pgrep comunix )
 
 else
          echo " Erro inesperado: $DATA_DE_INICIO $CHAMADAS_ATIVAS " >> "chamadas em curso: $LOG_DE_ERRO"
@@ -81,13 +85,13 @@ fi
 
 inicia_comunix(){
 
-        echo "iniciando o Comunix"
+        /etc/init.d/comunix.sh start
+        echo "Iniciando o Comunix"
 
 }
 
+#stop_gracefully
 
-verifica_andamento
+#encerra_comunix
 
-encerra_comunix
-
-inicia_comunix
+#inicia_comunix
