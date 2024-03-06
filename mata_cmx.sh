@@ -42,7 +42,7 @@
 
 
 # tempo de espera em SEGUNDOS para aguardar as chamadas encerrarem.
-TEMPO_DE_ESPERA=10
+TEMPO_DE_ESPERA=3
 
 # Esta é uma variável de controle, ela que determina as ações do script e não deve ser alterada.
 CHAMADAS_ATIVAS=$( comunix -rx "core show calls" | grep "active" | awk {'print $1'} 2>>/dev/null )
@@ -65,11 +65,12 @@ valida_chamadas(){
 # e altera para zero caso o valor seja vazio.
 # o valor sendo zero, o Comunix será reiniciado por outras funções.
 
+        CHAMADAS_ATIVAS=$( comunix -rx "core show calls" | grep "active" | awk {'print $1'} 2>>/dev/null )
+
         if [ -z "$CHAMADAS_ATIVAS" ]
         then
         VALIDADOR=0
         else
-        CHAMADAS_ATIVAS=$( comunix -rx "core show calls" | grep "active" | awk {'print $1'} 2>>/dev/null )
         VALIDADOR=1
         fi
 }
@@ -122,6 +123,8 @@ inicia_comunix(){
 
         /etc/init.d/comunix.sh start
         echo "Iniciando o Comunix"
+        sleep 1
+        comunix -rx "core show uptime"
 
 }
 
