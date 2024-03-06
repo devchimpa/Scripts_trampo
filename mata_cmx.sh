@@ -112,7 +112,7 @@ then
     #PROCESSOS_COMUNIX=$( pgrep comunix )
 
 else
-         echo " Erro inesperado: $DATA_DE_INICIO $CHAMADAS_ATIVAS " >> "chamadas em curso: $LOG_DE_ERRO"
+         echo " Erro inesperado: $DATA_DE_INICIO chamadas em curso: $CHAMADAS_ATIVAS" >> $LOG_DE_ERRO
 
 fi
 }
