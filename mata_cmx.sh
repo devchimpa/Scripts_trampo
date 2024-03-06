@@ -79,8 +79,8 @@ valida_chamadas(){
 stop_gracefully(){
 #Esta função irá iniciar a parada do Comunix
 
-        echo "Stop Grecefully!"
-        comunix -rx "core stop gracefully"
+        echo "Stop Gracefully!"
+        comunix -rx "core stop gracefully" &
 
 
         while [ "$VALIDADOR" -ne 0 ]
@@ -88,7 +88,7 @@ stop_gracefully(){
         do
                 # aguarda um período para encerrar o Comunix.
                 sleep "$TEMPO_DE_ESPERA"
-                echo "Aguardando encerramento..."
+                #echo "Aguardando encerramento..."
 
                 # chama a função para determinar se as chamadas zeraram.
                 valida_chamadas
@@ -106,7 +106,7 @@ encerra_comunix(){
 then
 
         pkill comunix
-    echo "Matou Comunix"
+        #echo "Matou Comunix"
         sleep 3
     #PROCESSOS_COMUNIX=$( pgrep comunix )
 
@@ -122,8 +122,8 @@ fi
 inicia_comunix(){
 
         /etc/init.d/comunix.sh start
-        echo "Iniciando o Comunix"
-        sleep 1
+        #echo "Iniciando o Comunix"
+        sleep 2 2
         comunix -rx "core show uptime"
 
 }
