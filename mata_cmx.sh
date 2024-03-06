@@ -42,6 +42,7 @@
 
 
 # tempo de espera em SEGUNDOS para aguardar as chamadas encerrarem.
+# é o tempo esperado entre a execução de cada função
 TEMPO_DE_ESPERA=3
 
 # Esta é uma variável de controle, ela que determina as ações do script e não deve ser alterada.
@@ -107,7 +108,7 @@ then
 
         pkill comunix
         #echo "Matou Comunix"
-        sleep 3
+        sleep "$TEMPO_DE_ESPERA"
     #PROCESSOS_COMUNIX=$( pgrep comunix )
 
 else
@@ -123,7 +124,7 @@ inicia_comunix(){
 
         /etc/init.d/comunix.sh start
         #echo "Iniciando o Comunix"
-        sleep 2 
+        sleep "$TEMPO_DE_ESPERA"
         comunix -rx "core show uptime"
 
 }
