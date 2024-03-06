@@ -18,9 +18,11 @@
 #       !! IMPORTANTE !!
 #
 #       O script deve ser configurado no crontab da seguinte maneira:
+#
 #       0 0 * * 6 /home/extend/scripts/stop-fully.sh
 #
 #       E o script deverá estar em:
+#
 #       /home/extend/scripts/stop-fully.sh
 #
 #
