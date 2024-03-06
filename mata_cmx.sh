@@ -123,7 +123,7 @@ inicia_comunix(){
 
         /etc/init.d/comunix.sh start
         #echo "Iniciando o Comunix"
-        sleep 2 2
+        sleep 2 
         comunix -rx "core show uptime"
 
 }
