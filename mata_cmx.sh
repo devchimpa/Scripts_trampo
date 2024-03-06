@@ -46,12 +46,12 @@
 TEMPO_DE_ESPERA=3
 
 # Esta é uma variável de controle, ela que determina as ações do script e não deve ser alterada.
-CHAMADAS_ATIVAS=$( comunix -rx "core show calls" | grep "active" | awk {'print $1'} 2>>/dev/null )
+CHAMADAS_ATIVAS=$( /usr/sbin/comunix -rx "core show calls" | grep "active" | awk {'print $1'} 2>>/dev/null )
 
 # data para registros de logs
 DATA_DE_INICIO=$(  date +%d-%m-%y_%H:%M )
 
-LOG_DE_ERRO="/home/extend/erro-$0"
+LOG_DE_ERRO="/home/extend/erro-stop-fully"
 
 
 
@@ -60,13 +60,12 @@ LOG_DE_ERRO="/home/extend/erro-$0"
 ##########################################################################
 
 
-
 valida_chamadas(){
 # Esta função guarda quantas chamadas estão em andamento
 # e altera para zero caso o valor seja vazio.
 # o valor sendo zero, o Comunix será reiniciado por outras funções.
 
-        CHAMADAS_ATIVAS=$( comunix -rx "core show calls" | grep "active" | awk {'print $1'} 2>>/dev/null )
+        CHAMADAS_ATIVAS=$( /usr/sbin/comunix -rx "core show calls" | grep "active" | awk {'print $1'} 2>>/dev/null )
 
         if [ -z "$CHAMADAS_ATIVAS" ]
         then
@@ -80,8 +79,8 @@ valida_chamadas(){
 stop_gracefully(){
 #Esta função irá iniciar a parada do Comunix
 
-        echo "Stop Gracefully!"
-        comunix -rx "core stop gracefully" &
+        echo "Stop Gracefully!" >> $LOG_DE_ERRO
+        /usr/sbin/comunix -rx "core stop gracefully"
 
 
         while [ "$VALIDADOR" -ne 0 ]
@@ -97,9 +96,6 @@ done
 
 }
 
-
-
-
 encerra_comunix(){
 
     #esta função irá encerrar o Comunix caso a quantidade de chamadas em curso seja igual a zero
@@ -107,13 +103,13 @@ encerra_comunix(){
 then
 
         pkill comunix
-        #echo "Matou Comunix"
+        echo "Matou Comunix" >> $LOG_DE_ERRO
         sleep "$TEMPO_DE_ESPERA"
     #PROCESSOS_COMUNIX=$( pgrep comunix )
 
 else
          echo " Erro inesperado: $DATA_DE_INICIO chamadas em curso: $CHAMADAS_ATIVAS" >> $LOG_DE_ERRO
-
+         exit 0
 fi
 }
 
@@ -123,9 +119,9 @@ fi
 inicia_comunix(){
 
         /etc/init.d/comunix.sh start
-        #echo "Iniciando o Comunix"
+        echo "Iniciando o Comunix" >> $LOG_DE_ERRO
         sleep "$TEMPO_DE_ESPERA"
-        comunix -rx "core show uptime"
+        /usr/sbin/comunix -rx "core show uptime"
 
 }
 
