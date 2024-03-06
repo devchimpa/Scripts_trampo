@@ -30,11 +30,12 @@
 
 # tempo de espera em SEGUNDOS para aguardar as chamadas encerrarem.
 TEMPO_DE_ESPERA=60
+
 # data para registros de logs
 DATA_DE_INICIO=$(  date +%d-%m-%y_%H:%M )
 
 # Verificador de chamadas em andamento.
-CHAMADAS_ATIVAS=$( comunix -rx "core show calls" | grep "active" | awk {'print $1'} 2>>/dev/null  )
+#CHAMADAS_ATIVAS=$( comunix -rx "core show calls" | grep "active" | awk {'print $1'} 2>>/dev/null  )
 
 echo $CHAMADAS_ATIVAS
 
@@ -45,22 +46,38 @@ LOG_DE_ERRO="/home/extend/erro-$0"
 ##########################################################################
 
 
+
+valida_chamadas(){
+# Esta função guarda quantas chamadas estão em andamento.
+
+        if [ -z "$CHAMADAS_ATIVAS" ]
+        then
+        CHAMADAS_ATIVAS=0
+        else
+        CHAMADAS_ATIVAS=$( comunix -rx "core show calls" | grep "active" | awk {'print $1'} 2>>/dev/null )
+        fi
+}
+
+
 stop_gracefully(){
-#Este trecho irá iniciar a parada do Comunix
+#Esta função irá iniciar a parada do Comunix
 
         echo "Stop Grecefully!"
-        comunix -rx " core stop gracefully "
-
+        comunix -rx "core stop gracefully"
         # Este trecho irá verificar se as chamadas ainda estão em andamento.
         # Este valor deve ser zero.
+
         while [ "$CHAMADAS_ATIVAS" -ne 0 ]
 
         do
                 # aguarda um período para encerrar o Comunix.
                 sleep "$TEMPO_DE_ESPERA"
                 echo "Aguardando encerramento..."
-                CHAMADAS_ATIVAS=$( comunix -rx "core show calls" | grep "active" | awk {'print $1'} )
-        done
+
+        # chama função para determinar se as chamadas zeraram.
+                valida_chamadas
+done
+
 }
 
 
@@ -83,6 +100,9 @@ else
 fi
 }
 
+
+
+
 inicia_comunix(){
 
         /etc/init.d/comunix.sh start
@@ -90,8 +110,18 @@ inicia_comunix(){
 
 }
 
-#stop_gracefully
 
-#encerra_comunix
 
-#inicia_comunix
+##########################################################################
+#                        CHAMADA DE FUNÇÕES                              #
+##########################################################################
+
+valida_chamadas
+
+stop_gracefully
+
+encerra_comunix
+
+inicia_comunix
+
+#########################################################################
