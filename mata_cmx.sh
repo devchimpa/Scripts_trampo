@@ -43,9 +43,9 @@
 
 # tempo de espera em SEGUNDOS para aguardar as chamadas encerrarem.
 # é o tempo esperado entre a execução de cada função
-TEMPO_DE_ESPERA=3
+TEMPO_DE_ESPERA=1
 
-# Esta é uma variável de controle, ela que determina as ações do script e não deve ser alterada.
+# Esta é uma variável de controle, ela irá determinar as ações do script e não deve ser alterada.
 CHAMADAS_ATIVAS=$( /usr/sbin/comunix -rx "core show calls" | grep "active" | awk {'print $1'} 2>>/dev/null )
 
 # data para registros de logs
@@ -69,59 +69,63 @@ valida_chamadas(){
 
         if [ -z "$CHAMADAS_ATIVAS" ]
         then
+
         VALIDADOR=0
+
         else
-        VALIDADOR=1
+        # caso a variável não esteja vazia, será declarado o número de chamadas
+        # o esperado é que seja zero para que o Comunix seja reiniciado.
+
+        VALIDADOR="$CHAMADAS_ATIVAS"
+
         fi
 }
 
 
 stop_gracefully(){
 #Esta função irá iniciar a parada do Comunix
+#se o valor de VALIDADOR for zero ele inicia a parada.
 
-        echo "Stop Gracefully!" >> $LOG_DE_ERRO
-        /usr/sbin/comunix -rx "core stop gracefully" &
 
 
         while [ "$VALIDADOR" -ne 0 ]
 
         do
-                # aguarda um período para encerrar o Comunix.
                 sleep "$TEMPO_DE_ESPERA"
-                #echo "Aguardando encerramento..."
 
                 # chama a função para determinar se as chamadas zeraram.
                 valida_chamadas
 done
+        # VALIDADOR sendo zero, a parada inicia.
+        /usr/sbin/comunix -rx "core stop gracefully"
+        DESLIGOU=$( echo $? )
+
 
 }
 
-encerra_comunix(){
 
-    #esta função irá encerrar o Comunix caso a quantidade de chamadas em curso seja igual a zero
-    if [ "$VALIDADOR" -eq 0 ]
+reinicia_comunix(){
+
+        #esta função irá encerrar o Comunix caso o processo do gracefully
+        #tenha sido encerrado corretamente.
+    if [ "$DESLIGOU" -eq 0 ]
 then
 
         pkill comunix
-        echo "Matou Comunix" >> $LOG_DE_ERRO
         sleep "$TEMPO_DE_ESPERA"
-    #PROCESSOS_COMUNIX=$( pgrep comunix )
-
-else
-         echo " Erro inesperado: $DATA_DE_INICIO chamadas em curso: $CHAMADAS_ATIVAS" >> $LOG_DE_ERRO
-         exit 0
-fi
-}
-
-
-
-
-inicia_comunix(){
 
         /etc/init.d/comunix.sh start
-        echo "Iniciando o Comunix" >> $LOG_DE_ERRO
         sleep "$TEMPO_DE_ESPERA"
         /usr/sbin/comunix -rx "core show uptime"
+else
+        pkill comunix
+        /etc/init.d/comunix.sh start
+        sleep "$TEMPO_DE_ESPERA"
+        /usr/sbin/comunix -rx "core show uptime"
+        DATA_FINAL=$(  date +%d-%m-%y_%H:%M )
+        echo "Hora inicial: $DATA_DE_INICIO Data final: $DATA_FINAL" >> $LOG_DE_ERRO
+        echo "Erro $DESLIGOU  no stop gracefully. " >> $LOG_DE_ERRO
+        fi
 
 }
 
@@ -135,8 +139,6 @@ valida_chamadas
 
 stop_gracefully
 
-encerra_comunix
-
-inicia_comunix
+reinicia_comunix
 
 #########################################################################
