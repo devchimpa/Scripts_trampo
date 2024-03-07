@@ -19,7 +19,7 @@
 #
 #       O script deve ser configurado no crontab da seguinte maneira:
 #
-#       0 0 * * 6 /home/extend/scripts/stop-fully.sh
+#       23 59 * * 6 /home/extend/scripts/stop-fully.sh
 #
 #       E o script deverá estar em:
 #
@@ -80,7 +80,7 @@ stop_gracefully(){
 #Esta função irá iniciar a parada do Comunix
 
         echo "Stop Gracefully!" >> $LOG_DE_ERRO
-        /usr/sbin/comunix -rx "core stop gracefully"
+        /usr/sbin/comunix -rx "core stop gracefully" &
 
 
         while [ "$VALIDADOR" -ne 0 ]
