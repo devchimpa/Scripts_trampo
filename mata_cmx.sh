@@ -39,7 +39,11 @@
 #                       VARIAVEIS DE CONFIGURAÇÃO:                       #
 ##########################################################################
 
-
+# Variáveis de controle de tempo
+# O script será configurado no crontab para iniciar a 00h de sábado
+# E deve executar no máximo até o horário definido pela variável.
+# a variável deve ser declarada da seguinte maneira: FIM_SCRIPT=05 se for 5h.
+FIM_SCRIPT=05
 
 # tempo de espera em SEGUNDOS para aguardar as chamadas encerrarem.
 # é o tempo esperado entre a execução de cada função
@@ -59,6 +63,19 @@ LOG_DE_ERRO="/home/extend/erro-stop-fully"
 #                         FUNCOES DO SCRIPT:                             #
 ##########################################################################
 
+controle_temporal(){
+
+        HORA_AGORA=$(date +%H )
+        if [ "$HORA_AGORA" -eq  "$FIM_SCRIPT" ]
+
+        then
+                #sai do script e encerra a atividade.
+                exit 0
+fi
+
+}
+
+
 
 valida_chamadas(){
 # Esta função guarda quantas chamadas estão em andamento
@@ -77,7 +94,7 @@ valida_chamadas(){
         # o esperado é que seja zero para que o Comunix seja reiniciado.
 
         VALIDADOR="$CHAMADAS_ATIVAS"
-
+        controle_temporal
         fi
 }
 
