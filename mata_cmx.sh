@@ -19,11 +19,11 @@
 #
 #       O script deve ser configurado no crontab da seguinte maneira:
 #
-#       23 59 * * 6 /home/extend/scripts/stop-fully.sh
+#       59 23 * * 6 /home/extend/scripts/stop-fully-timer.sh
 #
 #       E o script deverá estar em:
 #
-#       /home/extend/scripts/stop-fully.sh
+#       /home/extend/scripts/stop-fully-timer.sh
 #
 #
 ############## Siga o modelo abaixo caso mexa no script: ################
