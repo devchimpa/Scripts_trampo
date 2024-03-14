@@ -32,8 +32,12 @@
 #                       VARIAVEIS PRINCIPAIS:                            #
 ##########################################################################
 
+# aqui deve ser inserido o diretório onde será feita a busca.
+# caso sejam vários diretórios de mesmo nome, como mnt1 , mnt2, basta
+# colocar apenas mnt, que o script irá varrer todos.
+NOME_DIRETORIO=bkp_disk1
 
-DIRETORIOS=$( df -h | grep mnt | awk '{print $6}' )
+DIRETORIOS=$( df -h | grep $NOME_DIRETORIO | awk '{print $6}' )
 
 
 
@@ -54,6 +58,7 @@ procura_lista()
                 for GRAVA in ${LOCALIZADA[*]}
                 do
          cp -rpv "$GRAVA" /home/gravacoes/localizadas
+         echo "$GRAVA localizda" >> /home/gravacoes/localizadas/lista-encontradas
                 done
                 fi
 
@@ -64,3 +69,4 @@ for PONTO_DE_MONTAGEM in ${DIRETORIOS[*]}
 do
         procura_lista "$PONTO_DE_MONTAGEM"
 done
+
