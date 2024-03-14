@@ -32,9 +32,6 @@
 #                       VARIAVEIS PRINCIPAIS:                            #
 ##########################################################################
 
-# aqui deve ser inserido o diretório onde será feita a busca.
-# caso sejam vários diretórios de mesmo nome, como mnt1 , mnt2, basta
-# colocar apenas mnt, que o script irá varrer todos.
 NOME_DIRETORIO=bkp_disk1
 
 DIRETORIOS=$( df -h | grep $NOME_DIRETORIO | awk '{print $6}' )
@@ -49,13 +46,13 @@ procura_lista()
         {
          for i in $( cat /home/lista_de_procuradas )
          do
-         LOCALIZADA=$( find $1 -iname $i )
+         PROCURADA=$( find $1 -iname $i )
 
-         if [ -z "$LOCALIZADA" ]
+         if [ -z "$PROCURADA" ]
          then
                  echo "$i Não localizada."
          else
-                for GRAVA in ${LOCALIZADA[*]}
+                for GRAVA in ${PROCURADA[*]}
                 do
          cp -rpv "$GRAVA" /home/gravacoes/localizadas
          echo "$GRAVA localizda" >> /home/gravacoes/localizadas/lista-encontradas
