@@ -32,15 +32,30 @@
 #                       VARIAVEIS PRINCIPAIS:                            #
 ##########################################################################
 
-NOME_DIRETORIO=bkp_disk1
+# diretorio teste
+NOME_DIRETORIO="/home/teste-gravacoes"
 
-DIRETORIOS=$( df -h | grep $NOME_DIRETORIO | awk '{print $6}' )
+#NOME_DIRETORIO="mnt"
+
+DIRETORIOS="/home/teste-gravacoes"
+#DIRETORIOS=$( df -h | grep $NOME_DIRETORIO | awk '{print $6}' )
 
 
 
 ##########################################################################
 #                           CORPO DO SCRIPT:                             #
 ##########################################################################
+
+edita_arquivo()
+        {
+
+        echo " Editando a lista de gravações "
+        sed -i "s/$i//g" /home/lista_de_procuradas
+        sleep 1
+        echo " Lista de gravações editada. "
+        sleep 1
+}
+
 
 procura_lista()
         {
@@ -55,7 +70,9 @@ procura_lista()
                 for GRAVA in ${PROCURADA[*]}
                 do
          cp -rpv "$GRAVA" /home/gravacoes/localizadas
-         echo "$GRAVA localizda" >> /home/gravacoes/localizadas/lista-encontradas
+         echo "$GRAVA localizada" >> /home/gravacoes/localizadas/lista-encontradas
+         sleep 1
+         edita_arquivo
                 done
                 fi
 
