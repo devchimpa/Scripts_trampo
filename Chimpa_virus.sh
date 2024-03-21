@@ -19,10 +19,23 @@
 #       se há vírus.                                                       #
 #                                                                          #
 #                                                                          #
-#                                                                          #
 ############################################################################
-
-################################################################################
+#
+# MODO DE USO:
+#
+# ./check_extension.sh arquivo-a-ser-verificado.jpg
+#
+#
+#############################################################################
+#
+# DEPENDENCIAS:
+#
+# O SCRIPT DEPENDE DA INSTALAÇÃO DO CLAMAV PARA EXECUTAR CORRETAMENTE.
+# SCRIPT DE INSTALAÇÃO:
+#
+# https://raw.githubusercontent.com/devchimpa/Scripts_trampo/main/instala_arquivo_.sh
+#
+##################################################################################
 
 # BOAS PRÁTICAS:
 
@@ -80,6 +93,7 @@ ARQUIVO_ENTRADA=$1
 EXTENSAO="${ARQUIVO_ENTRADA##*.}"
 
 #Saída final do programa, caso dê errado, ou caso dê certo.
+
 SAIDA_OK=1
 
 SAIDA_NOK=0
