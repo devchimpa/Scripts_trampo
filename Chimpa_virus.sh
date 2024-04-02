@@ -60,7 +60,14 @@
 # DATA DE MODIFICAÇÃO:
 
 # O QUE FOI MODIFICADO:
-
+#
+#
+#
+# Esta tabela de cabeçalhos segue uma norma técnica
+# internacional para identificação de arquivos
+# por meio dela é validada a autenticidade dos arquivos no script.
+# este padrão é declarodo por tipo de arquivo na variável TABELA_HEXA
+#
 #########################################################
 #              TABELA DE CABEÇALHOS
 
@@ -83,7 +90,8 @@
 #########################################################
 
 
-###############-VARIAVEIS INICIAIS-######################
+###############-VARIAVEIS-INICIAIS-######################
+
 
 
 # Recebe o nome do arquivo que será testado como argumento
@@ -98,9 +106,13 @@ SAIDA_OK=1
 
 SAIDA_NOK=0
 
-# Diretório onde os arquivos não permitidos serão armazenados
+# Na variável SUSPEITOS é configurado o diretório onde
+# os arquivos não permitidos serão armazenados.
+# Diretório definido originalmente como:
+# /home/extend/scripts/.arquivos_suspeitos"
 
 SUSPEITOS="/home/extend/scripts/.arquivos_suspeitos"
+
 
 ####################-FUNCOES-#########################
 
@@ -182,7 +194,7 @@ descobre_cabecalho(){
 
 compara_hexa(){
 
-# Este laço for faz a leitura de cada item guardado em Tabela_hexa
+# Este laço for a leitura de cada item guardado em Tabela_hexa
         for HEXA in ${TABELA_HEXA[*]}
 do
         #echo $HEXA
