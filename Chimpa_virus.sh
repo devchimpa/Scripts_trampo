@@ -98,6 +98,10 @@ SAIDA_OK=1
 
 SAIDA_NOK=0
 
+# Diretório onde os arquivos não permitidos serão armazenados
+
+SUSPEITOS="/home/extend/scripts/.arquivos_suspeitos"
+
 ####################-FUNCOES-#########################
 
 
@@ -150,7 +154,7 @@ case "$1" in
 
          ;;
   *)
-        deleta_arquivo
+        move_arquivo
           echo $SAIDA_NOK
           exit
     ;;
@@ -255,7 +259,12 @@ else
 
 }
 
+move_arquivo(){
 
+        mkdir -p "$SUSPEITOS"
+        sleep 0.5
+        mv "$ARQUIVO_ENTRADA" "$SUSPEITOS"
+}
 
 
 
