@@ -194,7 +194,7 @@ descobre_cabecalho(){
 
 compara_hexa(){
 
-# Este laço faz a leitura de cada item guardado em Tabela_hexa
+# Este laço for a leitura de cada item guardado em Tabela_hexa
         for HEXA in ${TABELA_HEXA[*]}
 do
         #echo $HEXA
@@ -224,7 +224,7 @@ confirma_saida(){
         if [ $CONFIRMA_HEXA != 1 ]
 
         then
-                deleta_arquivo
+                move_arquivo
                 echo $SAIDA_NOK
                 exit
         else
