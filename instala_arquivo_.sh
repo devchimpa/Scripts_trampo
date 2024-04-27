@@ -5,7 +5,7 @@ echo " Iniciando a instalação..."
 
 sleep 2
 
-apt-get install clamav clamav-docs clamav-daemon clamav-freshclam
+apt-get install clamav clamav-docs clamav-daemon clamav-freshclam -y
 
 sleep 2
 
@@ -13,7 +13,7 @@ echo " Anti virus instalado. Instalando arquivos complementares..."
 
 sleep 2
 
-apt-get install arc arj bzip2 cabextract lhasa lzop nomarch p7zip-full pax rpm tnef unrar-free unzip zip
+apt-get install arc arj bzip2 cabextract lhasa lzop nomarch p7zip-full pax rpm tnef unrar-free unzip zip -y
 
 sleep 2
 
