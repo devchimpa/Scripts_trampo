@@ -29,13 +29,13 @@
 roda_arping(){
 
 
-      arping -i eth0 -c2  -S 192.168.1.63 -B
-      arping -i eth0 -c2 -S 192.168.1.63 192.168.0.10
+      /usr/sbin/arping -i eth0 -c2  -S 192.168.1.63 -B
+      /usr/sbin/arping -i eth0 -c2 -S 192.168.1.63 192.168.0.10
 
 }
 
 
-IP_VIRTUAL="$( ifconfig | grep 192.168.1.63 | tr ":" " " | awk {'print $3'} )"
+IP_VIRTUAL="$( ip a | grep 192.168.1.63 | tr "/" " " | awk {'print $2'} )"
 
         if [ -x $IP_VIRTUAL ]
 
