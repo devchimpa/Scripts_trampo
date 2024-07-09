@@ -32,20 +32,19 @@
 #                       VARIAVEIS PRINCIPAIS:                            #
 ##########################################################################
 
-# diretorio teste
-NOME_DIRETORIO="/home/teste-gravacoes"
+# aqui deve se colocado o nome do ponto de montagem, no caso mnt
 
-#NOME_DIRETORIO="mnt"
+NOME_DIRETORIO="mnt"
 
-DIRETORIOS="/home/teste-gravacoes"
-#DIRETORIOS=$( df -h | grep $NOME_DIRETORIO | awk '{print $6}' )
+
+DIRETORIOS=$( df -h | grep $NOME_DIRETORIO | awk '{print $6}' )
 
 
 
 ##########################################################################
 #                           CORPO DO SCRIPT:                             #
 ##########################################################################
-
+# Esta função serve para alterar o arquivo de listas
 edita_arquivo()
         {
 
@@ -56,11 +55,12 @@ edita_arquivo()
         sleep 1
 }
 
-
+#Esta função irá fazer a busca dos arquivos da lista
 procura_lista()
         {
          for i in $( cat /home/lista_de_procuradas )
          do
+         printf "Verificando arquivo: %s\r" "$i"
          PROCURADA=$( find $1 -iname $i )
 
          if [ -z "$PROCURADA" ]
@@ -69,6 +69,7 @@ procura_lista()
          else
                 for GRAVA in ${PROCURADA[*]}
                 do
+        mkdir -p /home/gravacoes/localizadas
          cp -rpv "$GRAVA" /home/gravacoes/localizadas
          echo "$GRAVA localizada" >> /home/gravacoes/localizadas/lista-encontradas
          sleep 1
@@ -78,9 +79,8 @@ procura_lista()
 
         done
         }
-
+# Neste ponto é utilizado o find em cada ponto de montagem na lista
 for PONTO_DE_MONTAGEM in ${DIRETORIOS[*]}
 do
         procura_lista "$PONTO_DE_MONTAGEM"
 done
-
