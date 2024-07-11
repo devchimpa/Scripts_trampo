@@ -100,13 +100,17 @@
 
 # Recebe o nome do arquivo que será testado como argumento
 
-ARQUIVO_RECEBIDO=$1
+ARQUIVO_ENTRADA=$1
 
-TRATAR_ARQUIVO=$( echo $ARQUIVO_RECEBIDO | tr " " "_" )
+#ARQUIVO_RECEBIDO=$1
 
-mv "$ARQUIVO_RECEBIDO" "$TRATAR_ARQUIVO"
+#UNIQUE_ID=$( date +%s )
 
-ARQUIVO_ENTRADA=$TRATAR_ARQUIVO
+#TRATAR_ARQUIVO=$( echo $ARQUIVO_RECEBIDO | tr " " "_" )
+
+#mv "$ARQUIVO_RECEBIDO" "$TRATAR_ARQUIVO"
+
+#ARQUIVO_ENTRADA=$TRATAR_ARQUIVO
 
 
 # Extrai a extensão do arquivo
@@ -153,7 +157,7 @@ case "$1" in
         ;;
         jpeg|jpg|JPG|JPEG)
 
-                TABELA_HEXA=( 'ffd8ffe0' )
+                TABELA_HEXA=( 'ffd8ffe0' 'ffd8ffe1' )
 
         ;;
         xls|xlsx|XLS|XLSX)
