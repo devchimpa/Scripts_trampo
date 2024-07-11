@@ -1,5 +1,9 @@
 #!/bin/bash
 #
+#
+# check_extension.sh versão: 1.3 - 07-2024
+#
+#
 ##############################################################################
 # Criado por: Rodrigo Pinheiro                                               #
 # Comunix Tecnologia                                                         #
@@ -95,7 +99,15 @@
 
 
 # Recebe o nome do arquivo que será testado como argumento
-ARQUIVO_ENTRADA=$1
+
+ARQUIVO_RECEBIDO=$1
+
+TRATAR_ARQUIVO=$( echo $ARQUIVO_RECEBIDO | tr " " "_" )
+
+mv "$ARQUIVO_RECEBIDO" "$TRATAR_ARQUIVO"
+
+ARQUIVO_ENTRADA=$TRATAR_ARQUIVO
+
 
 # Extrai a extensão do arquivo
 EXTENSAO="${ARQUIVO_ENTRADA##*.}"
@@ -151,7 +163,7 @@ case "$1" in
         ;;
         mp3|MP3)
 
-                TABELA_HEXA=( '494433' '52494646' '57415645' )
+                TABELA_HEXA=( '494433' '52494646' '57415645' 'fffb90c4' )
 
         ;;
         mp4|MP4)
@@ -184,7 +196,7 @@ esac
 
 descobre_cabecalho(){
 
-        ARQUIVO_HEXA=$(xxd -l 4 -p $1 | tr -d '\n' | tr '[:upper:]' '[:lower:]')
+        ARQUIVO_HEXA=$(xxd -l 4 -p $ARQUIVO_ENTRADA | tr -d '\n' | tr '[:upper:]' '[:lower:]')
 
 }
 
