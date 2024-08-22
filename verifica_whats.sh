@@ -28,6 +28,7 @@ TEMPO_ESPERA=60
 
 MAXIMO_DE_TEMPO=60
 
+HORARIO_COMERCIAL="08_18"
 
 ############- FUNCOES -#######################################################
 
@@ -109,7 +110,26 @@ sleep "$TEMPO_ESPERA"
 }
 
 
-########### - CHAMADA DE FUNCOES - #############################################
+verifica_horario(){
 
-verifica_conversas
-verifica_zeradas
+        HORA_ATUAL=$( date +%H )
+        HORA_INICIAL=$( echo "$HORARIO_COMERCIAL" | awk -F "_" {'print $1'})
+        HORA_FINAL=$( echo "$HORARIO_COMERCIAL" | awk -F "_" {'print $2'} )
+
+        if [ "$HORA_ATUAL" -gt "$HORA_INICIAL" ] && [ "$HORA_ATUAL" -gt "$HORA_FINAL" ]
+        then
+                exit 0
+
+        else
+
+        verifica_conversas
+          fi
+
+}
+
+
+########### - CHAMADA DE FUNCOES - #############################################
+verifica_horario
+#verifica_conversas
+#verifica_zeradas
+
