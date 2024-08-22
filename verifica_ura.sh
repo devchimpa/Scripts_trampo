@@ -28,9 +28,9 @@
 CHAVE=$( echo "L2V4dCEwMHgK" | base64 -d )
 
 # configuracao do tempo de espera em segundos.
-TEMPO_ESPERA=60
+TEMPO_ESPERA=1
 
-SERVIDORES="192.168.2.101 192.168.1.38 "
+SERVIDORES="10.20.1.45 10.20.1.44 "
 
 
 TENTATIVA=0
