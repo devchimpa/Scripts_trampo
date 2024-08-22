@@ -24,30 +24,48 @@ CHAVE=$( echo "L2V4dCEwMHgK" | base64 -d )
 SERVIDORES=" 10.20.1.40 "
 
 # define o tempo de espera em segundos
-TEMPO_ESPERA=60
+TEMPO_ESPERA="60"
 
-MAXIMO_DE_TEMPO=60
+# maximo de tempo em segundos permitido
+# de tempo sem mensagens
+UMA_HORA_FORA="3600"
+MEIA_HORA_FORA="1800"
 
-HORARIO_COMERCIAL="08_18"
+# horario de trabalho, deve ser colocado:
+#
+HORARIO_COMERCIAL="06_23"
+
+# caso seja necessário verificar tera saida 1 ,2 ou 0 caso
+# nao precise verificar.
+
+# verificacao de meia hora fora
+VERIFICAR_M="1"
+
+# verificacao de uma hora fora
+VERIFICAR_H="2"
+
+# nao verificar
+N_VERIFICAR="0"
+
 
 ############- FUNCOES -#######################################################
 
 
 verifica_conversas(){
 # Esta funcao serve para executar o comando no servidor
-# alvo e colher o resultado para tomada de acoes.
+# e colher o tempo em segundos da ultima mensagem para tomada de acoes.
 
 for maquina in ${SERVIDORES[*]}
 
 do
 
-        RESPOSTA=" das12nnu2#\r9 "
+        RESPOSTA=" 3900"
 
-#       RESPOSTA=$( sshpass -p "$CHAVE" ssh -t root@"$maquina" '/var/www/cmxom/./psql_exec /var/www/cmxom "select trunc(extract(epoch from now())-timestamp) from messages where channel=15 order by id desc limit 1"' )
+#       RESPOSTA=$( sshpass -p "$CHAVE" ssh -t root@"$maquina" '/var/www/cmxom/./psql_exec /var/www/cmxom "select trunc(extract(epoch from now())-timestamp) from messages where channel=15 order by id desc limit 1"' 2>/dev/null)
 
         TEMPO_MENSAGEM=$( echo "$RESPOSTA" | tr -cd 0-9 )
 
-        echo "$TEMPO_MENSAGEM"
+#       echo "$TEMPO_MENSAGEM"
 
         valida_quantidade
 done
@@ -57,49 +75,26 @@ done
 
 valida_quantidade(){
 # esta funcao ira contabilizar o tempo da ultima conversa
-# caso seja um valor alto, ele adiciona a uma
-# lista: "ALTO_PERIODO"
+# caso seja um valor alto, ele imprime o valor
+# de verificar ou nao.
 
-        if [ "$TEMPO_MENSAGEM" -gt "$MAXIMO_DE_TEMPO" ]
+        if [ "$TEMPO_MENSAGEM" -ge "$UMA_HORA_FORA" ]
 then
 
+        echo "$VERIFICAR_H"
 
-        echo "$maquina há $TEMPO_MENSAGEM segundos sem chat."
+elif [ "$TEMPO_MENSAGEM" -ge "$MEIA_HORA_FORA" ]
 
-        ALTO_PERIODO+=( "$maquina" )
+then
+        echo "$VERIFICAR_M"
+
+#       ALTO_PERIODO+=( "$maquina" )
 else
-        echo "$maquina O.K "
+        echo "$N_VERIFICAR"
         fi
 
 
 }
-
-verifica_zeradas(){
-# esta funcao ira verificar se as maquinas
-# que estao sem chamadas normalizaram
-# caso nao, ele ira registrar e aguardar
-
-        if [ -z "$ALTO_PERIODO" ]
-then
-        exit 0
-
-else
-
-
-        for maquina in ${ALTO_PERIODO[*]}
-
-do
-
-        RESPOSTA=$( sshpass -p "$CHAVE" ssh -t root@"$maquina" '/var/www/cmxom/./psql_exec /var/www/cmxom "select trunc(extract(epoch from now())-timestamp) from messages where channel=15 order by id desc limit 1"' )
-
-        NOME_MAQUINA=$( sshpass -p "$CHAVE" ssh "$maquina" 'hostname' )
-
-        done
-
-fi
-
-}
-
 
 aguarda(){
 # esta funcao serve para fazer uma pausa antes
@@ -111,6 +106,9 @@ sleep "$TEMPO_ESPERA"
 
 
 verifica_horario(){
+#esta funcao verifica o horario comercial
+# se estiver no horario, ele segue fluxo
+# caso contrario, ele imprime n_verificar
 
         HORA_ATUAL=$( date +%H )
         HORA_INICIAL=$( echo "$HORARIO_COMERCIAL" | awk -F "_" {'print $1'})
