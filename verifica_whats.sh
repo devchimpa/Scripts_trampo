@@ -17,35 +17,38 @@
 #########-VARIAVEIS IMPORTANTES: #########################################
 
 
-# A chave esta ofuscada para não ocorrer identificação por meio de regex.
-CHAVE=$( echo "L2V4dCEwMHgK" | base64 -d )
-
 # servidores a serem monitorados:
-SERVIDORES=" 10.20.1.40 "
+#SERVIDORES=" 10.20.1.40 "
 
 # define o tempo de espera em segundos
-TEMPO_ESPERA="60"
+#TEMPO_ESPERA="60"
 
-# maximo de tempo em segundos permitido
-# de tempo sem mensagens
-UMA_HORA_FORA="3600"
-MEIA_HORA_FORA="1800"
+# Se for sabado o domingo
+# a variavel sera utilizada
+# para definir o tempo
+SABADO="1"
+DOMINGO="0"
 
-# horario de trabalho, deve ser colocado:
-#
+# horario de trabalho, deve ser colocado: 06_23
+# 06 - representa hora inicial
+# 23 - representa hora final
 HORARIO_COMERCIAL="06_23"
 
+
+# RESPOSTAS PARA O ZABBIX #
 # caso seja necessário verificar tera saida 1 ,2 ou 0 caso
 # nao precise verificar.
 
-# verificacao de meia hora fora
-VERIFICAR_M="1"
+# OK deve ser igual a 0 para informar que esta tudo certo
+OK="0"
 
-# verificacao de uma hora fora
-VERIFICAR_H="2"
+# N_OK deve ser igual a 1 para informar alerta amarelo
+N_OK="1"
 
-# nao verificar
-N_VERIFICAR="0"
+# N_OK_MAXIMO deve ser igual a 2 para informar alerta vermelho
+N_OK_MAXIMO="2"
+
+##########################################################################
 
 
 ############- FUNCOES -#######################################################
@@ -55,20 +58,12 @@ verifica_conversas(){
 # Esta funcao serve para executar o comando no servidor
 # e colher o tempo em segundos da ultima mensagem para tomada de acoes.
 
-for maquina in ${SERVIDORES[*]}
 
-do
-
-        RESPOSTA=" 3900"
-
-#       RESPOSTA=$( sshpass -p "$CHAVE" ssh -t root@"$maquina" '/var/www/cmxom/./psql_exec /var/www/cmxom "select trunc(extract(epoch from now())-timestamp) from messages where channel=15 order by id desc limit 1"' 2>/dev/null)
+        RESPOSTA=$( /var/www/cmxom/./psql_exec /var/www/cmxom "select trunc(extract(epoch from now())-timestamp) from messages where channel=15 order by id desc limit 1" 2>/dev/null)
 
         TEMPO_MENSAGEM=$( echo "$RESPOSTA" | tr -cd 0-9 )
 
-#       echo "$TEMPO_MENSAGEM"
-
         valida_quantidade
-done
 
 }
 
@@ -78,37 +73,60 @@ valida_quantidade(){
 # caso seja um valor alto, ele imprime o valor
 # de verificar ou nao.
 
-        if [ "$TEMPO_MENSAGEM" -ge "$UMA_HORA_FORA" ]
+
+
+        if [ "$TEMPO_MENSAGEM" -ge "$TEMPO_MAXIMO_FORA" ]
 then
 
-        echo "$VERIFICAR_H"
+        echo "$N_OK_MAXIMO"
 
-elif [ "$TEMPO_MENSAGEM" -ge "$MEIA_HORA_FORA" ]
+elif [ "$TEMPO_MENSAGEM" -ge "$TEMPO_MEDIO_FORA" ]
 
 then
-        echo "$VERIFICAR_M"
+        echo "$N_OK"
 
-#       ALTO_PERIODO+=( "$maquina" )
 else
-        echo "$N_VERIFICAR"
+        echo "$OK"
         fi
 
 
 }
 
-aguarda(){
-# esta funcao serve para fazer uma pausa antes
-# de realizar uma nova acao.
 
-sleep "$TEMPO_ESPERA"
+verifica_dia(){
+# esta funcao verifica o dia da semana e de
+# acordo com o dia um tempo limite e definido
 
+        DIA_ATUAL=$( date +%w )
+        if [ "$DIA_ATUAL" -eq "$SABADO" ] || [ "$DIA_ATUAL" -eq "$DOMINGO" ]
+
+        then
+# se for fim de semana
+# 2 horas fora = amarelo
+# 4 horas = vermelho
+                TEMPO_MEDIO_FORA="7200"
+                TEMPO_MAXIMO_FORA="14400"
+
+                verifica_horario
+        else
+
+# se for semana
+# 2 horas fora = amarelo
+# 4 horas fora = vermelho
+
+                TEMPO_MEDIO_FORA="3600"
+                TEMPO_MAXIMO_FORA="7200"
+
+                verifica_horario
+
+                fi
 }
 
 
 verifica_horario(){
 #esta funcao verifica o horario comercial
 # se estiver no horario, ele segue fluxo
-# caso contrario, ele imprime n_verificar
+# caso contrario, ele imprime 0
 
         HORA_ATUAL=$( date +%H )
         HORA_INICIAL=$( echo "$HORARIO_COMERCIAL" | awk -F "_" {'print $1'})
@@ -116,6 +134,7 @@ verifica_horario(){
 
         if [ "$HORA_ATUAL" -gt "$HORA_INICIAL" ] && [ "$HORA_ATUAL" -gt "$HORA_FINAL" ]
         then
+                echo "$OK"
                 exit 0
 
         else
@@ -126,8 +145,9 @@ verifica_horario(){
 }
 
 
+
 ########### - CHAMADA DE FUNCOES - #############################################
-verifica_horario
+verifica_dia
 #verifica_conversas
 #verifica_zeradas
 
