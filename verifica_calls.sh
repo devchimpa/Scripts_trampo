@@ -16,36 +16,34 @@
 #
 #########-VARIAVEIS IMPORTANTES: #########################################
 
-
-# A chave esta ofuscada para não ocorrer identificação por meio de regex.
-CHAVE=$( echo "L2V4dCEwMHgK" | base64 -d )
-
-# servidores a serem monitorados:
-SERVIDORES="10.20.1.45 10.20.1.44 "
-
-
-# define o horario que o script iniciou
-# e o momento que foi identificado uma ura zerada
-TIME_STAMP_INICIAL=$( date +%s )
-
-# define o tempo de espera em segundos
-TEMPO_ESPERA=60
-#
-# quanto tempo em minutos antes de registrar log
-TEMPO_DEFINIDO=1
-
-# Variavel de contagem, se for maior
-# que tempo definido, registra log
-ATINGIU_LIMITE=0
-
-
-# horario de trabalho, deve ser colocado
-# da seguinte maneira 08_23
+# horario comercial deve ser
+# configurado da seguinte maneira: 08_23
 # 08 representa o horario de inicio
 # 23 representa o fim de expediente
 HORARIO_COMERCIAL="06_23"
 
+HORA_INICIO_SCRIPT=$( date +%s )
 
+# uma hora = 3600
+# duas horas = 7200
+# quatro horas = 14400
+
+SABADO="1"
+DOMINGO="0"
+
+ARQUIVO="/home/LOG_SCRIPT_ZABBIX"
+
+##########################################################################
+# RESPOSTAS PARA O ZABBIX #
+
+# OK deve ser igual a 0 para informar que esta tudo certo
+OK="0"
+
+# N_OK deve ser igual a 1 para informar alerta amarelo
+N_OK="1"
+
+# N_OK_MAXIMO deve ser igual a 2 para informar alerta vermelho
+N_OK_MAXIMO="2"
 
 ############- FUNCOES -#######################################################
 
@@ -54,125 +52,90 @@ verifica_chamadas(){
 # Esta funcao serve para executar o comando no servidor
 # alvo e colher o resultado para tomada de acoes.
 
-for maquina in ${SERVIDORES[*]}
 
-do
+#QUANTIDADE=$( /usr/sbin/comunix -rx "core show channels" | grep Dial | wc -l 2>/dev/null )
 
-QUANTIDADE=$( sshpass -p "$CHAVE" ssh -t root@"$maquina" 'comunix -rx "core show channels"' | grep Dial | wc -l )
+QUANTIDADE="1"
 
+RESPOSTA="0"
 
-NOME_MAQUINA=$( sshpass -p "$CHAVE" ssh "$maquina" 'hostname' )
+# resposta serve para garantir que o comando rodou com sucesso.
+#RESPOSTA=$( echo $? )
 
-#echo " $maquina: $QUANTIDADE $NOME_MAQUINA "
-
-valida_quantidade
-
-done
+valida_resposta
 
 }
+
+valida_resposta(){
+# valida resposta ira verificar se
+# o comando executou com sucesso e iniciar
+# as condicionais.
+
+        if [ "$RESPOSTA" -ne 0 ]
+        then
+                # aqui ja indica problema
+                # pois o comando nao rodou
+                # com sucesso
+                echo "$N_OK"
+
+        else
+                # aqui o comando rodou sem problemas
+                # entao e verificado se ha chamadas.
+                valida_quantidade
+
+                fi
+
+        }
 
 
 valida_quantidade(){
 # esta funcao ira quantificar o numero de chamadas
-# caso seja igual a zero ele adiciona a uma
-# lista de maquinas sem chamadas "MAQUINA_ZERADA"
+# caso seja igual a zero ele registra no zabbix 1 ou 0 caso
+# esteja certo.
 
         if [ "$QUANTIDADE" -eq 0 ]
 then
+        # aqui ele armazena o log
+        # para registrar que nao houveram falhas
+        # nos ultimos testes.
+        echo "$OK" > "$ARQUIVO"
 
-
-        echo "$maquina com: $QUANTIDADE chamadas "
-
-        MAQUINA_ZERADA+=( "$maquina" )
 else
-        echo "$maquina com: $QUANTIDADE chamadas "
+        verifica_tempo
+
         fi
 
 
-}
-
-verifica_zeradas(){
-# esta funcao ira verificar se as maquinas
-# que estao sem chamadas normalizaram
-# caso nao, ele ira registrar e aguardar
-
-        if [ -z "$MAQUINA_ZERADA" ]
-then
-        echo "0"
-        exit 0
-
-else
-
-
-        for maquina in ${MAQUINA_ZERADA[*]}
-
-do
-
-        QUANTIDADE=$( sshpass -p "$CHAVE" ssh -t root@"$maquina" 'comunix -rx "core show channels"' | grep Dial | wc -l )
-
-        NOME_MAQUINA=$( sshpass -p "$CHAVE" ssh "$maquina" 'hostname' )
-
-echo " $NOME_MAQUINA $QUANTIDADE "
-
-        validar_normalidade
-        verifica_zeradas
-
-        done
-
-fi
 
 }
 
+verifica_dia(){
 
-aguarda(){
-# esta funcao serve para fazer uma pausa antes
-# de realizar uma nova acao.
+        DIA_ATUAL=$( date +%w )
+        if [ "$DIA_ATUAL" -eq "$SABADO" ] || [ "$DIA_ATUAL" -eq "$DOMINGO" ]
 
-sleep "$TEMPO_ESPERA"
+        then
+# se for fim de semana
+# 4 horas fora = amarelo
+# 8 horas = vermelho
+                TEMPO_MEDIO_FORA="14400"
+                TEMPO_MAXIMO_FORA="28800"
 
+                verifica_horario
+        else
+
+# se for semana
+# 2 horas fora = amarelo
+# 4 horas fora = vermelho
+
+                TEMPO_MEDIO_FORA="7200"
+                TEMPO_MAXIMO_FORA="14400"
+
+                verifica_horario
+
+                fi
 }
 
-validar_normalidade(){
-# Esta funcao valida se as maquinas sem chamadas
-# normalizaram, caso nao ele registra o tempo
-# para gerar log e aguarda
-
-if [ "$QUANTIDADE" -ne 0 ]
-
-then
-        exit 0
-
-else
-         TIME_STAMP_FINAL=$( date +%s )
-
-         TEMPO_FORA=$( expr "$TIME_STAMP_FINAL" - "$TIME_STAMP_INICIAL" )
-
-        echo "$maquina sem chamadas há $TEMPO_FORA segundos. "
-
-        ATINGIU_LIMITE=$( expr $ATINGIU_LIMITE + 1 )
-
-        limite_atingido
-
-        aguarda
-
-        fi
-
-}
-
-
-limite_atingido(){
-# esta funcao calcula o tempo limite em minutos que a maquina pode ficar
-# sem chamadas, aqui sera gerado o log caso o limite seja atingido.
-
-        if [ "$ATINGIU_LIMITE" -gt "$TEMPO_DEFINIDO" ]
-then
-        echo "$NOME_MAQUINA Há $TEMPO_FORA segundos sem chamadas."
-        # Este ponto pode ser inserido una funcao de log
-        exit 0
-
-        fi
-
-}
 
 
 verifica_horario(){
@@ -184,9 +147,9 @@ verifica_horario(){
         HORA_INICIAL=$( echo "$HORARIO_COMERCIAL" | awk -F "_" {'print $1'})
         HORA_FINAL=$( echo "$HORARIO_COMERCIAL" | awk -F "_" {'print $2'} )
 
-        if [ "$HORA_ATUAL" -gt "$HORA_INICIAL" ] && [ "$HORA_ATUAL" -gt "$HORA_FINAL" ]
+        if [ "$HORA_ATUAL" -lt "$HORA_INICIAL" ] && [ "$HORA_ATUAL" -gt "$HORA_FINAL" ]
         then
-                echo "0"
+                echo "$OK"
                 exit 0
 
         else
@@ -197,7 +160,66 @@ verifica_horario(){
 }
 
 
+verifica_tempo(){
+
+        # Neste trecho foi identificado que nao
+        # ha chamadas em curso, entao e verificado
+        # ha quanto tempo esta sem chamadsa e
+        # caso nao haja registros, sera feito.
+
+        ULTIMA_HORA_FORA=$( cat "$ARQUIVO" )
+
+        if [ "$ULTIMA_HORA_FORA" -ne 0 ]
+
+        then
+                # se as chamadas ja esta fora ha tempos, o calculo e feito
+                TEMPO_CALCULADO=$( expr "$HORA_INICIO_SCRIPT" - "$ULTIMA_HORA_FORA" )
+
+                verifica_tempo_maximo
+        else
+                # se as chamadas falharam agora, a contagem e iniciada.
+                # e dada uma resposta de ok ja que nao houve extrapolo
+        echo "$HORA_INICIO_SCRIPT"  > "$ARQUIVO"
+        echo "$OK"
+
+        fi
+
+
+
+}
+
+verifica_tempo_maximo(){
+# esta funcao ira validar
+# se as chamadas estao fora ha mais tempo
+# que o tempo estipulado.
+
+        if [ "$TEMPO_CALCULADO" -gt "$TEMPO_MAXIMO_FORA" ]
+
+        then
+                echo "$N_OK_MAXIMO"
+
+        elif
+                [ "$TEMPO_CALCULADO" -gt "$TEMPO_MEDIO_FORA" ]
+
+        then
+                echo "$N_OK"
+
+        else
+                #neste trecho a resposta e ok porque
+                # nao estourou o prazo estipulado, porem
+                # nao foram identificadas chamadas
+                echo "$OK"
+
+        fi
+
+}
+
+
+
+
+
+
 ########### - CHAMADA DE FUNCOES - #############################################
-verifica_horario
+verifica_dia
+#verifica_horario
 #verifica_chamadas
-verifica_zeradas
