@@ -53,14 +53,14 @@ verifica_chamadas(){
 # alvo e colher o resultado para tomada de acoes.
 
 
-#QUANTIDADE=$( /usr/sbin/comunix -rx "core show channels" | grep Dial | wc -l 2>/dev/null )
+QUANTIDADE=$( sudo /usr/sbin/comunix -rx "core show channels" | grep Dial | wc -l 2>/dev/null )
 
-QUANTIDADE="1"
+#QUANTIDADE="0"
 
-RESPOSTA="0"
+#RESPOSTA="0"
 
 # resposta serve para garantir que o comando rodou com sucesso.
-#RESPOSTA=$( echo $? )
+RESPOSTA=$( echo $? )
 
 valida_resposta
 
@@ -93,12 +93,13 @@ valida_quantidade(){
 # caso seja igual a zero ele registra no zabbix 1 ou 0 caso
 # esteja certo.
 
-        if [ "$QUANTIDADE" -eq 0 ]
+        if [ "$QUANTIDADE" -ne 0 ]
 then
         # aqui ele armazena o log
         # para registrar que nao houveram falhas
         # nos ultimos testes.
         echo "$OK" > "$ARQUIVO"
+        echo "$OK"
 
 else
         verifica_tempo
@@ -115,21 +116,24 @@ verifica_dia(){
         if [ "$DIA_ATUAL" -eq "$SABADO" ] || [ "$DIA_ATUAL" -eq "$DOMINGO" ]
 
         then
-# se for fim de semana
-# 4 horas fora = amarelo
-# 8 horas = vermelho
-                TEMPO_MEDIO_FORA="14400"
-                TEMPO_MAXIMO_FORA="28800"
+
+################## se for fim de semana
+
+# 2 horas fora = amarelo
+# 4 horas = vermelho
+                TEMPO_MEDIO_FORA="7200"
+                TEMPO_MAXIMO_FORA="14400"
 
                 verifica_horario
         else
 
-# se for semana
-# 2 horas fora = amarelo
-# 4 horas fora = vermelho
+################## se for semana
 
-                TEMPO_MEDIO_FORA="7200"
-                TEMPO_MAXIMO_FORA="14400"
+# 30 minutos fora = amarelo
+# 1 hora fora = vermelho
+
+                TEMPO_MEDIO_FORA="1800"
+                TEMPO_MAXIMO_FORA="3600"
 
                 verifica_horario
 
@@ -147,14 +151,16 @@ verifica_horario(){
         HORA_INICIAL=$( echo "$HORARIO_COMERCIAL" | awk -F "_" {'print $1'})
         HORA_FINAL=$( echo "$HORARIO_COMERCIAL" | awk -F "_" {'print $2'} )
 
-        if [ "$HORA_ATUAL" -lt "$HORA_INICIAL" ] && [ "$HORA_ATUAL" -gt "$HORA_FINAL" ]
+        if [ "$HORA_ATUAL" -ge "$HORA_INICIAL" ] && [ "$HORA_ATUAL" -lt "$HORA_FINAL" ]
         then
-                echo "$OK"
-                exit 0
+
+         verifica_chamadas
 
         else
+                echo "$OK"
+               echo "$OK" > "$ARQUIVO"
+                exit 0
 
-        verifica_chamadas
           fi
 
 }
@@ -167,14 +173,17 @@ verifica_tempo(){
         # ha quanto tempo esta sem chamadsa e
         # caso nao haja registros, sera feito.
 
+        # este trecho vai capturar o arquivo
+        # com o ultimo registro que ficou fora
+
         ULTIMA_HORA_FORA=$( cat "$ARQUIVO" )
 
         if [ "$ULTIMA_HORA_FORA" -ne 0 ]
 
         then
-                # se as chamadas ja esta fora ha tempos, o calculo e feito
+                # se as chamadas ja estao fora ha tempos, o calculo e feito
                 TEMPO_CALCULADO=$( expr "$HORA_INICIO_SCRIPT" - "$ULTIMA_HORA_FORA" )
-
+                # o tempo_calculado pode ser igual a 15 segundos, por exemplo
                 verifica_tempo_maximo
         else
                 # se as chamadas falharam agora, a contagem e iniciada.
