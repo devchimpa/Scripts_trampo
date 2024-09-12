@@ -16,6 +16,7 @@
 #
 ########################################################################
 
+
 # VARIAVEIS DE CONFIGURAÇÃO
 
 # ponto de montagem para onde as gravacoes devem
@@ -27,14 +28,16 @@ MONTAGEM="/home/extend/gravacoes/"
 CALLS="/home/gravacoes/gra_home0/"
 #CALLS="/home/gravacoes/brb_call/"
 
+
+
 #######################################################
-# /home/gravacoes/gra_home0/2024-06-01/596281_1717267562054_081717267512.2879.avi
-# 120176_1717274343617_091717274178.3549.avi
+
 
 passa_diretorios(){
+# Esta funcao ira capturar as datas que existem
+# transformar em lista e passar para capturar as gravacoes
 
         DIRETORIOS_VARRER=$( ls $CALLS | grep 2024-06-* )
-#       echo "$DIRETORIOS_VARRER"
         for diretorio in ${DIRETORIOS_VARRER[*]}
                 do
                         cata_gravacao $diretorio
@@ -72,7 +75,8 @@ for arquivo in /home/gravacoes/gra_home0/"$PASSA_DATA"/*
 }
 
 define_diretorio(){
-
+# esta funcao ira definir o destino da gravacao
+# se faz parte de receptivas ou ativas
 
  if [ "$ATIVO_RECEPTIVO" -eq 99 ]
                 then
@@ -92,6 +96,8 @@ define_diretorio(){
 
 
 valida_extensao(){
+# esta funcao valida se o arquivo é avi para
+# poder fazer o envio
 
         if [ "$EXTENSAO" == avi ]
         then
@@ -100,13 +106,16 @@ valida_extensao(){
 }
 
 copia_gravacao(){
+# esta funcao ira realizar as copias para
+# o ponto de montagem
 
         #cria o diretório e faz o envio
+#       mkdir -p "$DIRETORIO_DESTINO"
 
-        echo "$arquivo $UNIQUE_ID.avi"
+        cp -rpv "$arquivo $DIRETORIO_DESTINO/$UNIQUE_ID.avi"
+        echo "$arquivo $DIRETORIO_DESTINO/$UNIQUE_ID.avi"
 }
 
 
 #############################################
 passa_diretorios
-#cata_gravacao
