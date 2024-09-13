@@ -110,10 +110,10 @@ copia_gravacao(){
 # o ponto de montagem
 
         #cria o diretório e faz o envio
-#       mkdir -p "$DIRETORIO_DESTINO"
+        mkdir -p "$DIRETORIO_DESTINO"
 
-        cp -rpv "$arquivo $DIRETORIO_DESTINO/$UNIQUE_ID.avi"
-        echo "$arquivo $DIRETORIO_DESTINO/$UNIQUE_ID.avi"
+        cp -rpv "$arquivo" "$DIRETORIO_DESTINO/$UNIQUE_ID.avi"
+#       echo "$arquivo $DIRETORIO_DESTINO/$UNIQUE_ID.avi"
 }
 
 
