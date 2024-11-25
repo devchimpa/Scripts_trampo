@@ -35,13 +35,17 @@
 # esta variavel configura o destino para onde
 # o backup sera enviado
 
-destino_backup=/home/bkp_ansi/
+destino_backup="/home/bkp_ansi/"
 
-lista_de_clientes=/home/extend/scripts/lista_de_clientes
+lista_de_clientes="/home/extend/scripts/lista_de_clientes"
 
 CODIGO="/home/extend/scripts/codigo_cliente"
 
 CODIGO_CLIENTE=$( cat /home/extend/scripts/codigo_cliente )
+
+HORARIO_INICIO=3
+
+HORARIO_FINAL=18
 
 #########################################################################
 
@@ -49,73 +53,85 @@ CODIGO_CLIENTE=$( cat /home/extend/scripts/codigo_cliente )
 #target_host=$( cat "$lista_de_clientes" | grep "$CODIGO_CLIENTE" | awk -F ":" {'print $2'} )
 
 
-define_cliente(){
+valida_horario(){
 
-# esta funcao ira selecionar um cliente da lista
-# para fazer o backup e seguir selecionando em ordem
+# esta funcao define o horario que inicia e termina o script
 
-        QUANTIDADE=$( cat "$lista_de_clientes" | wc -l )
+        if [ $(date +%H ) -lt "$HORARIO_INICIO" ]
 
-        # se QUANTIDADE for igual a quantidade da lista,
-        # ele inicia o backup, mas zera a lista.
-        if [ "$QUANTIDADE" -eq "$CODIGO_CLIENTE" ]
-                then
+        then
+                exit 0
 
-                target_host=$( cat "$lista_de_clientes" | grep "$CODIGO_CLIENTE" | awk -F ":" {'print $2'} )
+        elif [ $(date +%H ) -gt "$HORARIO_FINAL" ]
 
-                echo 0 > "$CODIGO"
-
-                inicia_backup
-
-
-        # se QUANTIDADE for maior que quantidade da lista,
-        # ele inicia o backup, mas zera a lista.
-        elif [ "$CODIGO_CLIENTE" -gt "$QUANTIDADE" ]
-
-                then
-
-                CODIGO_CLIENTE=0
-
-                target_host=$( cat "$lista_de_clientes" | grep "$CODIGO_CLIENTE" | awk -F ":" {'print $2'} )
-
-                inicia_backup
+        then
+                exit 0
 
         else
-
-
-                target_host=$( cat "$lista_de_clientes" | grep "$CODIGO_CLIENTE" | awk -F ":" {'print $2'} )
-
-                inicia_backup
-
+                # chamada de funcao para verificar em que ponto da fila o backup esta
+                valida_codigo_cliente
 
                 fi
 
+        }
+
+
+
+valida_codigo_cliente(){
+
+# Este trecho ira pegar na fila o proximo
+# cliente a ser feito o backup.
+
+QUANTIDADE=$( cat "$lista_de_clientes" | wc -l )
+
+# primeiro ele verifica se a lista chegou ao fim
+# caso tenha chegado, ele ira para o primeiro da fila
+if [ "$CODIGO_CLIENTE" -ge "$QUANTIDADE" ]
+        then
+                CODIGO_CLIENTE=1
+                echo "$CODIGO_CLIENTE" > "$CODIGO"
+
+                fi
+# caso nao tenha chegado, ele segue de onde parou
+while [ "$CODIGO_CLIENTE" -le "$QUANTIDADE" ]
+
+        do
+
+        executa_playbook
+
+        sleep 2
+
+
+done
 
 }
-
-inicia_backup(){
-
-        # aqui ele ira executar o playbook e somar o codigo do cliente.
-        echo " Realizando backup de: $target_host "
-        PROXIMO_CLIENTE=$( expr "$CODIGO_CLIENTE" + 1 )
-        echo "$PROXIMO_CLIENTE" > "$CODIGO"
-}
-
-
-
 
 
 executa_playbook(){
 # esta funcao chama o playbook para executar e enviar para o diretorio correto.
 
+target_host=$( cat "$lista_de_clientes" | grep "$CODIGO_CLIENTE" | awk -F ":" {'print $2'} )
+
 /usr/bin/ansible-playbook /etc/ansible/playbooks/backup_diario_parametros.yml \
   --extra-vars "target_host=$target_host destino_backup=$destino_backup"
 
+
+        PROXIMO_CLIENTE=$( expr "$CODIGO_CLIENTE" + 1 )
+
+        echo "$PROXIMO_CLIENTE" > "$CODIGO"
+
+        CODIGO_CLIENTE=$( cat "$CODIGO" )
+
+
 }
 
+
+
+
+
 ############################ CHAMADA DE FUNCOES ##################################
-define_cliente  #primeira funcao do script
+valida_horario  #primeira funcao do script
 ##################
-inicia_backup
+#inicia_backup
 
 #executa_playbook
