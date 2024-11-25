@@ -86,7 +86,7 @@ QUANTIDADE=$( cat "$lista_de_clientes" | wc -l )
 
 # primeiro ele verifica se a lista chegou ao fim
 # caso tenha chegado, ele ira para o primeiro da fila
-if [ "$CODIGO_CLIENTE" -ge "$QUANTIDADE" ]
+if [ "$CODIGO_CLIENTE" -gt "$QUANTIDADE" ]
         then
                 CODIGO_CLIENTE=1
                 echo "$CODIGO_CLIENTE" > "$CODIGO"
@@ -110,18 +110,23 @@ done
 executa_playbook(){
 # esta funcao chama o playbook para executar e enviar para o diretorio correto.
 
+
+# este trecho define o cliente e para onde sera enviado
 target_host=$( cat "$lista_de_clientes" | grep "$CODIGO_CLIENTE" | awk -F ":" {'print $2'} )
+sub_dir=$( echo "$target_host" | awk -F "_" {'print $1'})
+
 
 /usr/bin/ansible-playbook /etc/ansible/playbooks/backup_diario_parametros.yml \
-  --extra-vars "target_host=$target_host destino_backup=$destino_backup"
+  --extra-vars "target_host=$target_host destino_backup=$destino_backup/$sub_dir"
 
-
+#echo $target_host $CODIGO_CLIENTE
         PROXIMO_CLIENTE=$( expr "$CODIGO_CLIENTE" + 1 )
 
         echo "$PROXIMO_CLIENTE" > "$CODIGO"
 
         CODIGO_CLIENTE=$( cat "$CODIGO" )
 
+        valida_horario
 
 }
 
@@ -131,7 +136,3 @@ target_host=$( cat "$lista_de_clientes" | grep "$CODIGO_CLIENTE" | awk -F ":" {'
 
 ############################ CHAMADA DE FUNCOES ##################################
 valida_horario  #primeira funcao do script
-##################
-#inicia_backup
-
-#executa_playbook
