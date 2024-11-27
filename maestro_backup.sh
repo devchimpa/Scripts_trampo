@@ -16,7 +16,7 @@
 #       Ele serve para que os backups sigam uma ordem para nao
 #       sobrecarregar a rede durante as copias.
 #       Este script pode ser melhorado, sinta-se a vontade para
-#       modificar e melhorar as funcionalidades.
+#       modificar e melhorar as funcionalidades dele e dos playbooks.
 #
 ########################################################################
 #
@@ -43,9 +43,9 @@ CODIGO="/home/extend/scripts/codigo_cliente"
 
 CODIGO_CLIENTE=$( cat /home/extend/scripts/codigo_cliente )
 
-HORARIO_INICIO=3
+HORARIO_INICIO=00
 
-HORARIO_FINAL=18
+HORARIO_FINAL=19
 
 #########################################################################
 
@@ -65,6 +65,8 @@ valida_horario(){
         elif [ $(date +%H ) -gt "$HORARIO_FINAL" ]
 
         then
+
+        date >> /home/extend/scripts/horario_finalizado
                 exit 0
 
         else
@@ -110,21 +112,37 @@ done
 executa_playbook(){
 # esta funcao chama o playbook para executar e enviar para o diretorio correto.
 
-
+date >> /home/extend/scripts/horario_iniciado
 # este trecho define o cliente e para onde sera enviado
-target_host=$( cat "$lista_de_clientes" | grep "$CODIGO_CLIENTE" | awk -F ":" {'print $2'} )
-sub_dir=$( echo "$target_host" | awk -F "_" {'print $1'})
+
+# esta variavel ira concatenar os nomes para o backup
+cliente=$( cat "$lista_de_clientes" | grep "$CODIGO_CLIENTE" | awk -F ":" {'print $2'} )
+#
+
+#sub_dir=$( echo "$target_host" | awk -F "_" {'print $1'})
+
+for sub_dir in $( cat /home/extend/scripts/lista_de_solutions )
+do
+        target_host="$cliente"_"$sub_dir"
+
+#/usr/bin/ansible-playbook -i /etc/ansible/inventories/"$sub_dir"/"$target_host".yml \
+#  /etc/ansible/playbooks/backup_diario_parametros.yml \
+#  --extra-vars "target_host=$target_host destino_backup=$destino_backup/$sub_dir"
 
 
-/usr/bin/ansible-playbook /etc/ansible/playbooks/backup_diario_parametros.yml \
-  --extra-vars "target_host=$target_host destino_backup=$destino_backup/$sub_dir"
+#/usr/bin/ansible-playbook /etc/ansible/playbooks/backup_diario_parametros.yml \
+#  --extra-vars "target_host=$target_host destino_backup=$destino_backup/$sub_dir"
 
-#echo $target_host $CODIGO_CLIENTE
         PROXIMO_CLIENTE=$( expr "$CODIGO_CLIENTE" + 1 )
 
         echo "$PROXIMO_CLIENTE" > "$CODIGO"
+        echo "$target_host"
+        echo "$PROXIMO_CLIENTE"
+        sleep 2
 
         CODIGO_CLIENTE=$( cat "$CODIGO" )
+
+done
 
         valida_horario
 
