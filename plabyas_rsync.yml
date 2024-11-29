@@ -5,8 +5,7 @@
   ignore_unreachable: yes
   vars:
     backup_base_dir: "{{ destino_backup }}"
-    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'  # Desabilita verificação de host para todos os hosts
-
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
   tasks:
     - name: Verificar conectividade
       ping:
@@ -29,10 +28,17 @@
       delegate_to: localhost
       ignore_errors: yes
 
-    - name: Copiar os arquivos recentes do remoto para o diretório correspondente
-      fetch:
-        src: "{{ item }}"
-        dest: "{{ backup_base_dir }}/{{ group_names[0] }}/{{ inventory_hostname }}/"
-        flat: yes
-      loop: "{{ arquivos_recentes.stdout_lines }}"
+    - name: Transferir arquivos com rsync
+      command: >
+        rsync -avz -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+        /home/bkpComunix/*.tar.gz
+        {{ ansible_user }}@{{ ansible_host }}:{{ backup_base_dir }}/{{ group_names[0] }}/{{ inventory_hostname }}/
+      args:
+        warn: false
       ignore_errors: yes
+
+    - name: Verificar status de execução do rsync
+      debug:
+        msg: "Status do rsync: {{ rsync_result }}"
+      when: rsync_result.rc != 0
+      register: rsync_result
