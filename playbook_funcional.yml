@@ -1,25 +1,26 @@
 ---
-- name: Transferir arquivos
+- name: Transferir arquivos usando rsync
   hosts: "{{ target_host }}"
   strategy: free
   ignore_unreachable: yes
   vars:
     backup_base_dir: "{{ destino_backup }}"
-    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'  # Desabilita verificação de host para todos os hosts
+
   tasks:
     - name: Verificar conectividade
       ping:
 
     - name: Obter todos os arquivos recentes
-      shell: "find /home/bkpComunix -iname '*.tar.gz' -ctime -1 "
+      shell: "find /home/bkpComunix -iname '*.tar.gz' -ctime -1"
       register: arquivos_recentes
-      ignore_errors: yes  # Ignora erros dessa tarefa para continuar com os outros hosts
+      ignore_errors: yes
 
     - name: Verificar se foram encontrados arquivos recentes
       fail:
         msg: "Nenhum arquivo recente encontrado em /home/bkpComunix"
       when: arquivos_recentes.stdout_lines is not defined or arquivos_recentes.stdout_lines | length == 0
-      ignore_errors: yes  # Continua mesmo em caso de falha
+      ignore_errors: yes
 
     - name: Criar diretório local para os arquivos com base no grupo
       file:
