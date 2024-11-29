@@ -1,4 +1,4 @@
----
+--- 
 - name: Transferir arquivos usando rsync
   hosts: "{{ target_host }}"
   strategy: free
@@ -36,9 +36,9 @@
       args:
         warn: false
       ignore_errors: yes
+      register: rsync_result
 
     - name: Verificar status de execução do rsync
       debug:
         msg: "Status do rsync: {{ rsync_result }}"
       when: rsync_result.rc != 0
-      register: rsync_result
