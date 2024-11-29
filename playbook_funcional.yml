@@ -1,0 +1,37 @@
+---
+- name: Transferir arquivos
+  hosts: "{{ target_host }}"
+  strategy: free
+  ignore_unreachable: yes
+  vars:
+    backup_base_dir: "{{ destino_backup }}"
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+  tasks:
+    - name: Verificar conectividade
+      ping:
+
+    - name: Obter todos os arquivos recentes
+      shell: "find /home/bkpComunix -iname '*.tar.gz' -ctime -1 "
+      register: arquivos_recentes
+      ignore_errors: yes  # Ignora erros dessa tarefa para continuar com os outros hosts
+
+    - name: Verificar se foram encontrados arquivos recentes
+      fail:
+        msg: "Nenhum arquivo recente encontrado em /home/bkpComunix"
+      when: arquivos_recentes.stdout_lines is not defined or arquivos_recentes.stdout_lines | length == 0
+      ignore_errors: yes  # Continua mesmo em caso de falha
+
+    - name: Criar diretório local para os arquivos com base no grupo
+      file:
+        path: "{{ backup_base_dir }}/{{ group_names[0] }}/{{ inventory_hostname }}"
+        state: directory
+      delegate_to: localhost
+      ignore_errors: yes
+
+    - name: Copiar os arquivos recentes do remoto para o diretório correspondente
+      fetch:
+        src: "{{ item }}"
+        dest: "{{ backup_base_dir }}/{{ group_names[0] }}/{{ inventory_hostname }}/"
+        flat: yes
+      loop: "{{ arquivos_recentes.stdout_lines }}"
+      ignore_errors: yes
