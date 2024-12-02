@@ -37,15 +37,15 @@
 
 destino_backup="/home/bkp_ansi/"
 
-lista_de_clientes="/home/extend/scripts/lista_de_clientes"
+lista_de_clientes="/home/extend/scripts/maestro_bkp/lista_de_clientes"
 
-CODIGO="/home/extend/scripts/codigo_cliente"
+CODIGO="/home/extend/scripts/maestro_bkp/codigo_cliente"
 
-CODIGO_CLIENTE=$( cat /home/extend/scripts/codigo_cliente )
+CODIGO_CLIENTE=$( cat /home/extend/scripts/maestro_bkp/codigo_cliente )
 
 HORARIO_INICIO=00
 
-HORARIO_FINAL=19
+HORARIO_FINAL=23
 
 #########################################################################
 
@@ -60,13 +60,15 @@ valida_horario(){
         if [ $(date +%H ) -lt "$HORARIO_INICIO" ]
 
         then
+                echo "Fora de horário."
                 exit 0
 
         elif [ $(date +%H ) -gt "$HORARIO_FINAL" ]
 
         then
 
-        date >> /home/extend/scripts/horario_finalizado
+                echo "Fora de horário."
+        date >> /home/extend/scripts/maestro_bkp/horario_finalizado
                 exit 0
 
         else
@@ -92,13 +94,12 @@ if [ "$CODIGO_CLIENTE" -gt "$QUANTIDADE" ]
         then
                 CODIGO_CLIENTE=1
                 echo "$CODIGO_CLIENTE" > "$CODIGO"
-
+                exit 0
                 fi
 # caso nao tenha chegado, ele segue de onde parou
 while [ "$CODIGO_CLIENTE" -le "$QUANTIDADE" ]
 
         do
-
         executa_playbook
 
         sleep 2
@@ -112,7 +113,6 @@ done
 executa_playbook(){
 # esta funcao chama o playbook para executar e enviar para o diretorio correto.
 
-date >> /home/extend/scripts/horario_iniciado
 # este trecho define o cliente e para onde sera enviado
 
 # esta variavel ira concatenar os nomes para o backup
@@ -121,28 +121,34 @@ cliente=$( cat "$lista_de_clientes" | grep "$CODIGO_CLIENTE" | awk -F ":" {'prin
 
 #sub_dir=$( echo "$target_host" | awk -F "_" {'print $1'})
 
-for sub_dir in $( cat /home/extend/scripts/lista_de_solutions )
+for sub_dir in $( cat /home/extend/scripts/maestro_bkp/lista_de_solutions )
 do
         target_host="$cliente"_"$sub_dir"
 
-#/usr/bin/ansible-playbook -i /etc/ansible/inventories/"$sub_dir"/"$target_host".yml \
-#  /etc/ansible/playbooks/backup_diario_parametros.yml \
-#  --extra-vars "target_host=$target_host destino_backup=$destino_backup/$sub_dir"
+/usr/bin/ansible-playbook -i /etc/ansible/inventories/"$sub_dir"/"$target_host".yml \
+  /etc/ansible/playbooks/backup_diario_parametros.yml \
+  --extra-vars "target_host=$target_host destino_backup=$destino_backup/$sub_dir"
 
 
 #/usr/bin/ansible-playbook /etc/ansible/playbooks/backup_diario_parametros.yml \
 #  --extra-vars "target_host=$target_host destino_backup=$destino_backup/$sub_dir"
 
+
+
+
+
+
+        echo "$target_host"
+        sleep 2
+
+done
+
         PROXIMO_CLIENTE=$( expr "$CODIGO_CLIENTE" + 1 )
 
         echo "$PROXIMO_CLIENTE" > "$CODIGO"
-        echo "$target_host"
-        echo "$PROXIMO_CLIENTE"
-        sleep 2
 
         CODIGO_CLIENTE=$( cat "$CODIGO" )
 
-done
 
         valida_horario
 
