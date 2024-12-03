@@ -1,7 +1,8 @@
 #!/bin/bash
----		
+#
+#
 # Desenvolvido por: DevChimpa
-# Data de Criação: 22/11/2024
+# Data de Criação: 03/12/2024
 
 # Contato:
 # https://www.linkedin.com/in/rodrigo-pinheiro-214663206/
@@ -9,14 +10,12 @@
 #
 #######################################################################
 #
-#######################-DESCRIÇÃO DO PROGRAMA-###########################
+#######################-DESCRICAO DO PROGRAMA-###########################
 #
-#	O objetivo deste script é funcionar como um maestro que
-#	orquestra os backups feitos pelo Ansible.
-#	Ele serve para que os backups sigam uma ordem para nao
-#	sobrecarregar a rede durante as copias.
-#	Este script pode ser melhorado, sinta-se a vontade para
-#	modificar e melhorar as funcionalidades dele e dos playbooks.
+# Esse script serve como controlador de backup, ele quem orquestra
+# o fluxo de backups realizados pelo ansible, passando os parametros
+# de hosts, solucoes e destino.
+# Entenda mais sobre o fluxo em: /etc/ansible/playbooks/backup_rsync_reverso.yml
 #
 ########################################################################
 #
@@ -30,91 +29,168 @@
 ##########################################################################
 
 
-###################### VARIAVEIS DE CONFIGURACAO #########################
 
-# esta variavel configura o destino para onde
-# o backup sera enviado
+############## Variaveis de configuracoes: ###############################
 
+# essas variaveis servem para alterar o comportamento do script:
+# Variavel do caminho parcial para envio dos arquivos:
 destino_backup="/home/bkp_ansi/"
-
-
-controle_de_clientes="/home/extend/scripts/maestro_bkp/controle"
-
-
-CODIGO="/home/extend/scripts/maestro_bkp/codigo_cliente"
-
-
-CODIGO_CLIENTE=$( cat /home/extend/scripts/maestro_bkp/codigo_cliente )
-
 
 HORARIO_INICIO=00
 
+HORARIO_FINAL=06
 
-HORARIO_FINAL=23
+############### Variáveis Estruturais: #
+
+# Essas sao variaveis estaticas e nao devem ser mexidas a menos que a
+# estrutura do script seja modificada.
+
+# Variaveis de controle de fluxo, essas variavies auxiliam o script a entender
+# em que ponto do backup ele esta para poder prosseguir de onde parou:
+controle_de_clientes="/home/extend/scripts/maestro_bkp/controle_de_fluxo/controle"
+arquivo_clientes="/home/extend/scripts/maestro_bkp/controle_de_fluxo/lista_de_clientes"
+arquivo_solucoes="/home/extend/scripts/maestro_bkp/controle_de_fluxo/lista_de_solucoes"
+
+# Obter o número total de clientes e soluções
+total_clientes=$(wc -l < "$arquivo_clientes")
+max_solucao=$(wc -l < "$arquivo_solucoes")
+
+# Leitura do estado atual do controle
+codigo_cliente=$(awk -F ":" 'NR==1 {print $1}' "$controle_de_clientes")
+codigo_solucao=$(awk -F ":" 'NR==1 {print $2}' "$controle_de_clientes")
+
+##################################################################################
+
+# Funcao para definir o alvo do backup e as variaveis necessarias
+# para o ansible executar o backup.
+
+define_alvo() {
+    CLIENTE=$(awk -F ":" -v id="$codigo_cliente" '$1 == id {print $2}' "$arquivo_clientes")
+    SOLUCAO=$(awk -F ":" -v id="$codigo_solucao" '$1 == id {print $2}' "$arquivo_solucoes")
+
+    if [[ -z "$CLIENTE" || -z "$SOLUCAO" ]]; then
+        desenha_macaco "Erro: Cliente ou solução não encontrado!"
+
+        exit 1
+    fi
+
+    ALVO="${CLIENTE}_${SOLUCAO}"
+    ARQUIVO_YML="/etc/ansible/inventories/"$CLIENTE"/"$ALVO".yml"
+
+   if [[ ! -f "$ARQUIVO_YML" ]] ; then
+        valida_controle
+   else
+
+        SENHA=$( cat "$ARQUIVO_YML" | grep pass |awk -F ":" {'print $2'} | tr -d " " )
+
+  fi
+}
+
+############################################################################
+
+realizar_backup(){
+# Esta funcao chama o ansible para realizar os backups de acordo
+# com os parametros recebidos:
+
+sleep 2
+desenha_macaco2 "Relizando backup de: $ALVO "
+/usr/bin/ansible-playbook -i /etc/ansible/inventories/"$CLIENTE"/"$ALVO".yml \
+  /etc/ansible/playbooks/backup_rsync_reverso.yml \
+  --extra-vars "target_host=$ALVO diretorio_destino=/home/bkp_ansi/$CLIENTE/$SOLUCAO senha=$SENHA"
 
 
-QUANTIDADE=$( cat "$controle_de_clientes" | wc -l )
-
-
-
-#ansible-playbook -i /etc/ansible/inventories/teste/teste_ura.yml backup_rsync_sshpass.yml \
-#  --extra-vars "target_host="$ALVO" diretorio_destino=/home/bkp_ansi/"$CLIENTE"/ senha="$SENHA"
-
-
-
-CLIENTE_ATUAL=$( cat $controle_de_clientes)
-
-SENHA=$( cat /etc/ansible/inventories/teste/teste_ura.yml  | grep pass | awk  -F ":" {'print $2'} | tr -d " " )
-
-
-###################
-controle_de_fluxo(){
-
-SOLUCAO=$( cat $controle_de_clientes | awk -F ":" {'print $3'} )
-CLIENTE=$( cat $controle_de_clientes | awk -F ":" {'print $2'} )
-CODIGO=$( cat $controle_de_clientes | awk -F ":" {'print $1'} )
-
-ALVO="$CLIENTE"_"$SOLUCAO"
-
-echo "$CODIGO:$CLIENTE:$SOLUCAO" > controle
-
-
-
-#ansible-playbook -i /etc/ansible/inventories/teste/teste_ura.yml \
-#  /etc/ansible/playbooks/backup_rsync_sshpass_parametros.yml \
-#  --extra-vars "target_host=$ALVO diretorio_destino=/home/bkp_ansi/$CLIENTE/$SOLUCAO senha=$SENHA"
-
-
-
-ENDERECOS=$( cat /etc/ansible/inventories/"$CLIENTE"/"$CLIENTE"_"$SOLUCAO".yml | grep [0-9] | grep -v pass | tr -d : | tr -d " " )
 
 }
 
 
-#####################
-valida_codigo_cliente(){
+##############################################################################
+
+valida_controle() {
+# Função para validar e atualizar o controle
+# essa variavel serve para executar sempre que o script realizar o backup.
+
+        if [ "$codigo_solucao" -lt "$max_solucao" ]; then
+        codigo_solucao=$((codigo_solucao + 1))
+    else
+        if [ "$codigo_cliente" -lt "$total_clientes" ]; then
+            codigo_cliente=$((codigo_cliente + 1))
+        else
+            codigo_cliente=1  # Reseta o cliente
+        fi
+        codigo_solucao=1  # Reseta a solução
+    fi
+
+    # Atualiza o arquivo de controle
+    echo "$codigo_cliente:$codigo_solucao" > "$controle_de_clientes"
+
+#Depois que ele executa esse trecho, ele define quem é o próximo alvo
+define_alvo
+}
 
 
-if [ "$CODIGO_CLIENTE" -gt "$QUANTIDADE" ]
+
+
+
+#######################################################################################
+desenha_macaco(){
+echo "##################################################"
+echo "           --------------------------------------"
+echo "           $1                                 "
+echo "         /--------------------------------------"
+echo "        /
+     /~\
+   C(o o)D   -----
+    _(^)   /    /
+   /__m~\m/____/ "
+echo "############################################################"
+}
+
+desenha_macaco2(){
+echo "##################################################"
+echo "           --------------------------------------"
+echo "          $1                                "
+echo "         /--------------------------------------"
+echo "        /
+     /~\
+    C oo)   -----
+    _( ^)  /    /
+   /__m~\m/____/ "
+echo "###########################################################"
+}
+#######################################################################################
+
+valida_horario(){
+
+# esta funcao define o horario que inicia e termina o script
+
+        if [ $(date +%H ) -lt "$HORARIO_INICIO" ]
+
         then
-                CODIGO_CLIENTE=1
-                echo "$CODIGO_CLIENTE" > "$CODIGO"
+                desenha_macaco "Fora de horário."
                 exit 0
+
+        elif [ $(date +%H ) -gt "$HORARIO_FINAL" ]
+
+        then
+
+                desenha_macaco "Fora de horário."
+                exit -1
+
+        else
+
+        define_alvo
+        realizar_backup
+        valida_controle
+        valida_horario
+
+
                 fi
-# caso nao tenha chegado, ele segue de onde parou
-while [ "$CODIGO_CLIENTE" -le "$QUANTIDADE" ]
 
-        do
-
-echo "$CLIENTE"
-
-
-done
-}
+        }
 
 
 
-####################################################################################################
-controle_de_fluxo
-#valida_codigo_cliente
-#
+valida_horario
+#define_alvo
+#realizar_backup
+#valida_controle
