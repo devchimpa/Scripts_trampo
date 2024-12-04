@@ -26,7 +26,7 @@
     - name: Copiar arquivos via rsync do host remoto para o local
       delegate_to: localhost
       command: >
-        sshpass -p "{{ senha }}" rsync -avz --progress -e "ssh -o StrictHostKeyChecking=no"
+        sshpass -p "{{ senha }}" rsync -avz --bwlimit=10000 --progress -e "ssh -o StrictHostKeyChecking=no"
         root@{{ inventory_hostname }}:{{ item }} {{ diretorio_destino }}
       with_items: "{{ arquivos_recentes.stdout_lines }}"
       when: arquivos_recentes.stdout_lines is defined
