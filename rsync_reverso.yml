@@ -15,7 +15,7 @@
         mode: '0755'
 
     - name: Obter arquivos recentes
-      shell: "find /home/bkpComunix -iname '*.tar.gz' -ctime -1"
+      shell: "find /home/bkpComunix -iname '*.tar*' -ctime -1"
       register: arquivos_recentes
       ignore_errors: yes
 
@@ -26,7 +26,18 @@
     - name: Copiar arquivos via rsync do host remoto para o local
       delegate_to: localhost
       command: >
-        sshpass -p "{{ senha }}" rsync -avz --bwlimit=10000 --progress -e "ssh -o StrictHostKeyChecking=no"
+        sshpass -p "{{ senha }}" rsync -avz --progress -e "ssh -o StrictHostKeyChecking=no"
         root@{{ inventory_hostname }}:{{ item }} {{ diretorio_destino }}
       with_items: "{{ arquivos_recentes.stdout_lines }}"
       when: arquivos_recentes.stdout_lines is defined
+      async: 21600  # 6 horas para executar
+      register: rsync_job
+
+    - name: Verificar o status do job de rsync
+      async_status:
+        jid: "{{ rsync_job.ansible_job_id }}"
+      register: job_result
+      until: job_result.finished
+      retries: 3
+      delay: 1800
+      when: rsync_job is defined and rsync_job.ansible_job_id is defined
