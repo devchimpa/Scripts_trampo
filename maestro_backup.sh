@@ -34,11 +34,11 @@
 
 # essas variaveis servem para alterar o comportamento do script:
 # Variavel do caminho parcial para envio dos arquivos:
-destino_backup="/home/bkp_ansi/"
+destino_backup="/home/bkpClientes"
 
 HORARIO_INICIO=00
 
-HORARIO_FINAL=06
+HORARIO_FINAL=19
 
 ############### Variáveis Estruturais: #
 
@@ -50,6 +50,7 @@ HORARIO_FINAL=06
 controle_de_clientes="/home/extend/scripts/maestro_bkp/controle_de_fluxo/controle"
 arquivo_clientes="/home/extend/scripts/maestro_bkp/controle_de_fluxo/lista_de_clientes"
 arquivo_solucoes="/home/extend/scripts/maestro_bkp/controle_de_fluxo/lista_de_solucoes"
+LOG_FINAL="/home/extend/scripts/maestro_bkp/controle_de_fluxo/horario_finalizado"
 
 # Obter o número total de clientes e soluções
 total_clientes=$(wc -l < "$arquivo_clientes")
@@ -82,6 +83,7 @@ define_alvo() {
    else
 
         SENHA=$( cat "$ARQUIVO_YML" | grep pass |awk -F ":" {'print $2'} | tr -d " " )
+        USUARIO=$( cat "$ARQUIVO_YML" | grep user |awk -F ":" {'print $2'} | tr -d " " )
 
   fi
 }
@@ -92,13 +94,11 @@ realizar_backup(){
 # Esta funcao chama o ansible para realizar os backups de acordo
 # com os parametros recebidos:
 
-sleep 2
-desenha_macaco2 "Relizando backup de: $ALVO "
-/usr/bin/ansible-playbook -i /etc/ansible/inventories/"$CLIENTE"/"$ALVO".yml \
-  /etc/ansible/playbooks/backup_rsync_reverso.yml \
-  --extra-vars "target_host=$ALVO diretorio_destino=/home/bkp_ansi/$CLIENTE/$SOLUCAO senha=$SENHA"
-
-
+#sleep 2
+echo " $ALVO "
+ /usr/bin/ansible-playbook -i /etc/ansible/inventories/"$CLIENTE"/"$ALVO".yml \
+ /etc/ansible/playbooks/backup_rsync_reverso-remote_user.yml \
+  --extra-vars "target_host=$ALVO diretorio_destino=$destino_backup/$CLIENTE/$SOLUCAO senha=$SENHA remote_user=$USUARIO"
 
 }
 
@@ -133,6 +133,7 @@ define_alvo
 
 #######################################################################################
 desenha_macaco(){
+clear
 echo "##################################################"
 echo "           --------------------------------------"
 echo "           $1                                 "
@@ -146,6 +147,7 @@ echo "############################################################"
 }
 
 desenha_macaco2(){
+clear
 echo "##################################################"
 echo "           --------------------------------------"
 echo "          $1                                "
@@ -166,15 +168,15 @@ valida_horario(){
         if [ $(date +%H ) -lt "$HORARIO_INICIO" ]
 
         then
-                desenha_macaco "Fora de horário."
+                desenha_macaco2 "Fora de horário."
                 exit 0
 
         elif [ $(date +%H ) -gt "$HORARIO_FINAL" ]
 
         then
-
+                date > "$LOG_FINAL"
                 desenha_macaco "Fora de horário."
-                exit -1
+                exit 0
 
         else
 
@@ -189,8 +191,8 @@ valida_horario(){
         }
 
 
-
+###########################################################################################
+# funcao principal, funcao que ira iniciar ou parar o script
 valida_horario
-#define_alvo
-#realizar_backup
-#valida_controle
+
+###########################################################################################
