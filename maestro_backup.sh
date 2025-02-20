@@ -38,7 +38,7 @@ destino_backup="/home/bkpClientes"
 
 HORARIO_INICIO=00
 
-HORARIO_FINAL=19
+HORARIO_FINAL=05
 
 ############### Variáveis Estruturais: #
 
@@ -87,6 +87,30 @@ define_alvo() {
 
   fi
 }
+
+limpeza_disco(){
+
+
+CAMINHO_LIMPEZA="$destino_backup"/"$CLIENTE"/"$SOLUCAO"/
+
+QUANTIDADE_MAXIMA=10
+
+QUANTIDADE_BACKUP=$( ls "$CAMINHO_LIMPEZA" | wc -l )
+
+if [ "$QUANTIDADE_BACKUP" -gt "$QUANTIDADE_MAXIMA" ]
+        then
+
+                RESULTADO=$( expr "$QUANTIDADE_BACKUP" - "$QUANTIDADE_MAXIMA" )
+                ls -t "$CAMINHO_LIMPEZA" | tail -n "$RESULTADO" | xargs -i echo "$CAMINHO_LIMPEZA"{}
+
+        else
+                echo "O.K"
+
+fi
+
+
+}
+
 
 ############################################################################
 
@@ -181,7 +205,8 @@ valida_horario(){
         else
 
         define_alvo
-        realizar_backup
+        limpeza_disco
+        #realizar_backup
         valida_controle
         valida_horario
 
