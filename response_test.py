@@ -45,7 +45,7 @@ def read_logs():
     percent_success=( total_success / total_response * 100 )
     percent_error=( total_error / total_response * 100 )
     percent_critical=( total_critical / total_response * 100 )
-    print(f'Succesful: {percent_success:.2f}% Errors: {percent_error:.2f}% Critical: {percent_critical:.2f}%')
+    print(f'Total: Succesful: {percent_success:.2f}% Errors: {percent_error:.2f}% Critical: {percent_critical:.2f}%')
     print('#'*70)  
 
     for item in log_results.keys():
@@ -53,13 +53,14 @@ def read_logs():
         response_item=(log_results[item]['responses'])
         error_item=(( log_results[item]['errors']) / response_item * 100)
         critical_item=((log_results[item]['critical']) / response_item * 100)
-        if error_item > 30 and critical_item > 10:
+        if error_item >= 30 and critical_item >= 10:
             print(f'The {item.capitalize()} is not operating properly and must be checked immediately.')
-        elif error_item > 30 and critical_item < 10:
+        elif error_item >= 30 and critical_item <= 10:
+            print(f'The {item.capitalize()} needs the attention of the IT administrator.')
+        elif error_item <= 30 and critical_item >= 10:
             print(f'The {item.capitalize()} needs the attention of the IT administrator.')
         else:
             print(f'The {item.capitalize()} is operating properly.')
         
 
 read_logs()
-
